@@ -1,7 +1,7 @@
 import api from "../axios";
 
 export interface LoginCredentials {
-    user: string;
+    username: string;
     password: string;
 }
 
@@ -15,27 +15,27 @@ export const login = async (credenciales: LoginCredentials): Promise<LoginRespon
     return response.data;
 }
 
-export const logout = async() => {
+export const logout = async () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
 }
 
-export const refreshAccessToken = async() => {
+export const refreshAccessToken = async () => {
     const refresh = localStorage.getItem("refresh");
     if (!refresh)
         return null;
 
-    try{
+    try {
         const response = await api.post<LoginResponse>("/token/refresh/", { refresh });
         const { access } = response.data;
 
-        if (access){
+        if (access) {
             localStorage.setItem("access", access);
             return access;
         }
 
         return null;
-    } catch (error){
+    } catch (error) {
         console.error("Error al refrescar token:", error);
         return null;
     }
