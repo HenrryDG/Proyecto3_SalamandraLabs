@@ -18,15 +18,24 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import ProtectedRoute from "./components/routes/ProtectedRoute";
+import { Toaster } from "sonner";
 
 export default function App() {
   return (
     <>
+      <Toaster toastOptions={{ duration: 3000 }} position="top-left" theme="light" visibleToasts={1} richColors closeButton />
       <Router>
         <ScrollToTop />
         <Routes>
+
           {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
             <Route index path="/" element={<Home />} />
 
             {/* Others Page */}
@@ -54,8 +63,8 @@ export default function App() {
           </Route>
 
           {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/ingresar" element={<SignIn />} />
+          <Route path="/registrar" element={<SignUp />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
