@@ -3,10 +3,12 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { logout } from "../../services/auth/authService";
 import { useNavigate } from "react-router";
+import { useEmpleado } from "../../hooks/empleado/useEmpleado";
 
 
 export default function UserDropdown() {
   const navigate = useNavigate();
+  const { empleado, loading } = useEmpleado();
   const [isOpen, setIsOpen] = useState(false);
 
   function toggleDropdown() {
@@ -33,7 +35,7 @@ export default function UserDropdown() {
           <img src="/images/user/owner.jpg" alt="User" />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">{loading ? "Cargando..." : empleado?.nombre + " " + empleado?.apellido_paterno}</span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
             }`}
@@ -60,10 +62,10 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {loading ? "Cargando..." : empleado?.nombre + " " + empleado?.apellido_paterno}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {loading ? "Cargando..." : empleado?.rol}
           </span>
         </div>
 
