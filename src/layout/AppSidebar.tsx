@@ -44,10 +44,7 @@ const AppSidebar: React.FC = () => {
       icon: <PieChartIcon />,
       name: "Gestión de Préstamos",
       subItems: [
-        // Solo mostrar "Solicitudes" si es admin
-        ...(rolUsuario === "Administrador"
-          ? [{ name: "Solicitudes", path: "/solicitudes", pro: false }]
-          : []),
+        { name: "Solicitudes", path: "/solicitudes", pro: false },
         { name: "Préstamos", path: "/prestamos", pro: false },
       ],
     },

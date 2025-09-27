@@ -19,6 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
+import RoleProtectedRoute from "./components/routes/RoleProtectedRoute";
 import { Toaster } from "sonner";
 
 import EmpleadosPage from "./pages/empleados/EmpleadosPage";
@@ -67,7 +68,17 @@ export default function App() {
             <Route path="/bar-chart" element={<BarChart />} />
 
             {/* Páginas */}
-            <Route path="/empleados" element={<EmpleadosPage />} />
+            <Route
+              path="/empleados"
+              element={
+                <ProtectedRoute>
+                  <RoleProtectedRoute allowedRoles={['Administrador']}>
+                    <EmpleadosPage />
+                  </RoleProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/prestamos" element={<PrestamosPage />} />
             <Route path="/solicitudes" element={<SolicitudesPage />} />
