@@ -5,8 +5,5 @@ import { Empleado } from "../../types/empleado";
 
 export const getEmpleadoAutenticado = async (): Promise<Empleado> => {
     const response = await api.get<Empleado>("/empleados/perfil/");
-
-    localStorage.setItem("rol", response.data.rol);
-
     return response.data;
 };
