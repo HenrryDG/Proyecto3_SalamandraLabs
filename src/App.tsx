@@ -21,6 +21,11 @@ import Home from "./pages/Dashboard/Home";
 import ProtectedRoute from "./components/routes/ProtectedRoute";
 import { Toaster } from "sonner";
 
+import EmpleadosPage from "./pages/empleados/EmpleadosPage";
+import ClientesPage from "./pages/clientes/ClientesPage";
+import PrestamosPage from "./pages/prestamos/PrestamosPage";
+import SolicitudesPage from "./pages/solicitudes/SolicitudesPage";
+
 export default function App() {
   return (
     <>
@@ -60,6 +65,12 @@ export default function App() {
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
+
+            {/* Páginas */}
+            <Route path="/empleados" element={<EmpleadosPage />} />
+            <Route path="/clientes" element={<ClientesPage />} />
+            <Route path="/prestamos" element={<PrestamosPage />} />
+            <Route path="/solicitudes" element={<SolicitudesPage />} />
           </Route>
 
           {/* Auth Layout */}
