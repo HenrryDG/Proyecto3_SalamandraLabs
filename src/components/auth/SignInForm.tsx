@@ -37,11 +37,11 @@ export default function SignInForm() {
                 />
               </Link>
             </div>
-            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Iniciar Seasasdassión
+            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md"> 
+              Bienvenido a Esetel
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Ingresa tus credenciales
+              Por favor, ingresa tus credenciales para iniciar sesión.
             </p>
           </div>
           <div>
