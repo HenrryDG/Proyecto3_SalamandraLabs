@@ -19,3 +19,9 @@ export const updateCliente = async (cliente: Cliente): Promise<Cliente> => {
     const response = await api.put<Cliente>(`/clientes/${cliente.id}/`, cliente);
     return response.data;
 }
+
+// * === SERVICIO PARA HABILITAR/DESHABILITAR UN CLIENTE === * //
+export const toggleCliente = async (id: number): Promise<{ mensaje: string}> => {
+    const response = await api.patch(`/clientes/${id}/`);
+    return response.data.mensaje;
+}

@@ -6,8 +6,10 @@ import {
     TableRow,
 } from "../../ui/table";
 import Button from "../../ui/button/Button";
+import Badge from "../../ui/badge/Badge";
 import { MoreDotIcon } from "../../../icons";
 import { Cliente } from "../../../types/cliente";
+
 
 type Props = {
     clientes: Cliente[];
@@ -26,6 +28,7 @@ export default function ClienteTable({ clientes, onEdit }: Props) {
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Dirección</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Teléfono</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Correo</TableCell>
+                            <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Estado</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Acciones</TableCell>
                         </TableRow>
                     </TableHeader>
@@ -52,7 +55,15 @@ export default function ClienteTable({ clientes, onEdit }: Props) {
                                     {cliente.telefono}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                                    { cliente.correo ? cliente.correo : "-"}
+                                    {cliente.correo ? cliente.correo : "-"}
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                                    <Badge
+                                        size="sm"
+                                        color={cliente.activo ? "success" : "warning"}
+                                    >
+                                        {cliente.activo ? "Activo" : "Inactivo"}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="px-4 py-3">
                                     <Button

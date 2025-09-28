@@ -4,13 +4,14 @@ import Input from "../../form/input/InputField";
 import Button from "../../ui/button/Button";
 import { Cliente, ClienteDTO } from "../../../types/cliente";
 import { useUpdateCliente } from "../../../hooks/cliente/useUpdateCliente";
-import { 
-  validarTexto, 
-  validarTelefono, 
-  validarCarnet, 
-  validarCorreo, 
-  validarIngreso, 
-  validarLongitud 
+import { useToggleCliente } from "../../../hooks/cliente/useToggleCliente";
+import {
+  validarTexto,
+  validarTelefono,
+  validarCarnet,
+  validarCorreo,
+  validarIngreso,
+  validarLongitud
 } from "../../utils/validaciones";
 
 interface Props {
@@ -22,26 +23,27 @@ interface Props {
 
 type FormKeys = keyof ClienteDTO;
 
-const campos: { 
-  key: FormKeys; 
-  label: string; 
-  type?: string; 
-  validator: (val: string) => string | null 
+const campos: {
+  key: FormKeys;
+  label: string;
+  type?: string;
+  validator: (val: string) => string | null
 }[] = [
-  { key: "carnet", label: "Carnet", validator: (v) => validarLongitud(v, 6, 12) || validarCarnet(v) },
-  { key: "nombre", label: "Nombre", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
-  { key: "tipo_trabajo", label: "Tipo de Trabajo", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
-  { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
-  { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
-  { key: "telefono", label: "Teléfono", validator: validarTelefono },
-];
+    { key: "carnet", label: "Carnet", validator: (v) => validarLongitud(v, 6, 12) || validarCarnet(v) },
+    { key: "nombre", label: "Nombre", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
+    { key: "tipo_trabajo", label: "Tipo de Trabajo", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
+    { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
+    { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
+    { key: "telefono", label: "Teléfono", validator: validarTelefono },
+  ];
 
 export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }: Props) {
   const { update, isUpdating } = useUpdateCliente();
+  const { toggle, isToggling } = useToggleCliente();
 
   // Estado inicial con cliente o vacío
   const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
@@ -129,11 +131,29 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
           ))}
         </div>
 
+
         <div className="flex justify-end gap-3 pt-4">
+          <Button
+            onClick={async () => {
+              if (!cliente) return;
+
+              await toggle(cliente.id);  // Ejecuta el toggle
+              onClose();                 // Cierra el modal
+              onUpdated?.();             // Refresca datos si hay callback
+            }}
+            disabled={isToggling}
+          >
+            {isToggling
+              ? "Procesando..."
+              : cliente?.activo
+                ? "Deshabilitar"
+                : "Habilitar"}
+          </Button>
+
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button 
-            variant="primary" 
-            onClick={handleSubmit} 
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
             disabled={isUpdating || hayErrores}
           >
             {isUpdating ? "Actualizando..." : "Guardar Cambios"}

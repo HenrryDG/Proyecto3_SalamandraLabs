@@ -10,6 +10,7 @@ export interface Cliente{
     direccion: string;
     correo: string;
     telefono: number;
+    activo: boolean;
 }
 
 export interface ClienteDTO {

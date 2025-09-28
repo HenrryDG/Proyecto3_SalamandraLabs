@@ -12,10 +12,11 @@ import { useModal } from "../../hooks/useModal";
 import { Cliente } from "../../types/cliente";
 import EditClienteModal from "../../components/modals/cliente/EditClienteModal";
 
+
 export default function ClientesPage() {
   const { isOpen, openModal, closeModal } = useModal();
   const { clientes, loading, error, refetch } = useClientes();
-  
+
   // Estado para edición
   const [clienteEdit, setClienteEdit] = useState<Cliente | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -25,8 +26,9 @@ export default function ClientesPage() {
     setIsEditOpen(true);
   };
 
-  // ---------- Filtro de texto ---------- 
+  // ---------- Filtro de texto y estado ----------
   const [filtro, setFiltro] = useState("");
+  const [estado, setEstado] = useState("true");
 
   // ------------- Paginación ------------
   const [paginaActual, setPaginaActual] = useState(1);
@@ -37,7 +39,10 @@ export default function ClientesPage() {
     `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno} ${cliente.carnet} ${cliente.direccion} ${cliente.telefono} ${cliente.correo}`
       .toLowerCase()
       .includes(filtro.toLowerCase())
-  );
+  )
+    .filter((cliente) =>
+      estado === "true" ? cliente.activo : estado === "false" ? !cliente.activo : true
+    );
 
   // ------------- Paginación -----------
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
@@ -48,7 +53,7 @@ export default function ClientesPage() {
   // Reiniciar a la primera página al cambiar el filtro
   useEffect(() => {
     setPaginaActual(1);
-  }, [filtro]);
+  }, [filtro, estado]);
 
   // Cambios de página
   const onPrev = () => setPaginaActual((p) => Math.max(p - 1, 1));
@@ -67,6 +72,8 @@ export default function ClientesPage() {
         <ClienteFilter
           filtro={filtro}
           setFiltro={setFiltro}
+          estado={estado}
+          setEstado={setEstado}
           child={
             <Button
               size="md"
@@ -85,7 +92,7 @@ export default function ClientesPage() {
             <div className="flex flex-col items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
               <p className="text-center text-gray-500 dark:text-gray-400">
-              Cargando clientes...
+                Cargando clientes...
               </p>
             </div>
           ) : error ? (
@@ -117,7 +124,7 @@ export default function ClientesPage() {
         onCreated={refetch}
       />
 
-       {/* === Modal de edición === */}
+      {/* === Modal de edición === */}
       <EditClienteModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
