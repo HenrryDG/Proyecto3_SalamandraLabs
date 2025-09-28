@@ -10,15 +10,16 @@ interface InputProps {
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
-  min?: string;
-  max?: string;
-  step?: number;
+  min?: string | number;  // ✅ acepta string o number
+  max?: string | number;  // ✅ acepta string o number
+ step?: number;
   disabled?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string;
   required?: boolean;
 }
+
 
 const Input: FC<InputProps> = ({
   label,

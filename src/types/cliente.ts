@@ -10,3 +10,16 @@ export interface Cliente{
     correo: string;
     telefono: number;
 }
+
+export interface ClienteDTO {
+  carnet: string;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  lugar_trabajo: string;
+  tipo_trabajo: string;
+  ingreso_mensual: string;
+  direccion: string;
+  correo: string;
+  telefono: number;
+}

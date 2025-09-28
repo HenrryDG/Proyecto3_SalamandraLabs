@@ -7,9 +7,11 @@ import { useClientes } from "../../hooks/cliente/useClientes";
 import ClienteFilter from "../../components/filters/cliente/ClienteFilter";
 import Button from "../../components/ui/button/Button";
 import { FaPlus } from "react-icons/fa";
-import { Cliente } from "../../types/cliente";
+import ClienteModal from "../../components/modals/ClienteModal";
+import { useModal } from "../../hooks/useModal";
 
 export default function ClientesPage() {
+  const { isOpen, openModal, closeModal } = useModal();
   const { clientes, loading, error, refetch } = useClientes();
 
   // ---------- Filtro de texto ---------- 
@@ -20,14 +22,13 @@ export default function ClientesPage() {
   const elementosPorPagina = 7;
 
   // -------------- Filtrado -------------
-  const clientesFiltrados = (clientes ?? [])
-    .filter((cliente) =>
-      `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno} ${cliente.carnet} ${cliente.direccion} ${cliente.telefono} ${cliente.correo}`
-        .toLowerCase()
-        .includes(filtro.toLowerCase())
-    );
+  const clientesFiltrados = (clientes ?? []).filter((cliente) =>
+    `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno} ${cliente.carnet} ${cliente.direccion} ${cliente.telefono} ${cliente.correo}`
+      .toLowerCase()
+      .includes(filtro.toLowerCase())
+  );
 
-  // ------------- Paginación  -----------
+  // ------------- Paginación -----------
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const indiceFin = indiceInicio + elementosPorPagina;
   const clientesPaginados = clientesFiltrados.slice(indiceInicio, indiceFin);
@@ -38,10 +39,9 @@ export default function ClientesPage() {
     setPaginaActual(1);
   }, [filtro]);
 
-  //  Cambios de página
+  // Cambios de página
   const onPrev = () => setPaginaActual((p) => Math.max(p - 1, 1));
   const onNext = () => setPaginaActual((p) => Math.min(p + 1, totalPaginas));
-
 
   return (
     <div>
@@ -60,6 +60,7 @@ export default function ClientesPage() {
             <Button
               size="md"
               variant="primary"
+              onClick={openModal}
             >
               <FaPlus className="size-3" />
               Nuevo Cliente
@@ -83,9 +84,7 @@ export default function ClientesPage() {
             </p>
           ) : (
             <>
-              <ClienteTable
-                clientes={clientesPaginados}
-              />
+              <ClienteTable clientes={clientesPaginados} />
               <Pagination
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
@@ -97,7 +96,12 @@ export default function ClientesPage() {
         </div>
       </div>
 
-
+      {/* === Modal de creación de cliente === */}
+      <ClienteModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        onCreated={refetch}
+      />
     </div>
   );
 }
