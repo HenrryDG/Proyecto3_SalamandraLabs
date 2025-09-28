@@ -7,12 +7,23 @@ import { useClientes } from "../../hooks/cliente/useClientes";
 import ClienteFilter from "../../components/filters/cliente/ClienteFilter";
 import Button from "../../components/ui/button/Button";
 import { FaPlus } from "react-icons/fa";
-import ClienteModal from "../../components/modals/ClienteModal";
+import CreateClienteModal from "../../components/modals/cliente/CreateClienteModal";
 import { useModal } from "../../hooks/useModal";
+import { Cliente } from "../../types/cliente";
+import EditClienteModal from "../../components/modals/cliente/EditClienteModal";
 
 export default function ClientesPage() {
   const { isOpen, openModal, closeModal } = useModal();
   const { clientes, loading, error, refetch } = useClientes();
+  
+  // Estado para edición
+  const [clienteEdit, setClienteEdit] = useState<Cliente | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const handleEdit = (cliente: Cliente) => {
+    setClienteEdit(cliente);
+    setIsEditOpen(true);
+  };
 
   // ---------- Filtro de texto ---------- 
   const [filtro, setFiltro] = useState("");
@@ -71,9 +82,12 @@ export default function ClientesPage() {
         {/* === Tabla / estados === */}
         <div className="max-w-full space-y-6">
           {loading ? (
-            <p className="text-center text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+              <p className="text-center text-gray-500 dark:text-gray-400">
               Cargando clientes...
-            </p>
+              </p>
+            </div>
           ) : error ? (
             <p className="text-center text-red-500 dark:text-red-400">
               Error al cargar clientes.
@@ -84,7 +98,7 @@ export default function ClientesPage() {
             </p>
           ) : (
             <>
-              <ClienteTable clientes={clientesPaginados} />
+              <ClienteTable clientes={clientesPaginados} onEdit={handleEdit} />
               <Pagination
                 paginaActual={paginaActual}
                 totalPaginas={totalPaginas}
@@ -97,10 +111,18 @@ export default function ClientesPage() {
       </div>
 
       {/* === Modal de creación de cliente === */}
-      <ClienteModal
+      <CreateClienteModal
         isOpen={isOpen}
         onClose={closeModal}
         onCreated={refetch}
+      />
+
+       {/* === Modal de edición === */}
+      <EditClienteModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        cliente={clienteEdit}
+        onUpdated={refetch}
       />
     </div>
   );

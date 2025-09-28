@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useCreateCliente } from "../../hooks/cliente/useCreateCliente";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import { Modal } from "../ui/modal";
-import { ClienteDTO } from "../../types/cliente";
-import { validarTexto, validarTelefono, validarCarnet, validarCorreo, validarIngreso, validarLongitud } from "../utils/validaciones";
+import { useCreateCliente } from "../../../hooks/cliente/useCreateCliente";
+import Button from "../../ui/button/Button";
+import Input from "../../form/input/InputField";
+import { Modal } from "../../ui/modal";
+import { ClienteDTO } from "../../../types/cliente";
+import { validarTexto, validarTelefono, validarCarnet, validarCorreo, validarIngreso, validarLongitud } from "../../utils/validaciones";
 
 interface Props {
   isOpen: boolean;
@@ -28,7 +28,7 @@ const campos: { key: FormKeys; label: string; type?: string; validator: (val: st
 ];
 
 
-export default function ClienteModal({ isOpen, onClose, onCreated }: Props) {
+export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props) {
   const { mutate, isPending } = useCreateCliente();
 
   // Estado del formulario y errores

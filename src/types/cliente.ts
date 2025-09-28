@@ -6,6 +6,7 @@ export interface Cliente{
     apellido_materno: string;
     lugar_trabajo: string;
     tipo_trabajo: string;
+    ingreso_mensual: number;
     direccion: string;
     correo: string;
     telefono: number;
