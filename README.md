@@ -1,192 +1,163 @@
-# TailAdmin React - Free React Tailwind Admin Dashboard Template
+# ESETEL React App 
 
-TailAdmin is a free and open-source admin dashboard template built on **React and Tailwind CSS**, providing developers
-with everything they need to create a comprehensive, data-driven back-end,
-dashboard, or admin panel solution for upcoming web projects.
+Panel de administración para el sistema de gestión de créditos de ESETEL construido con **React 19**, **Vite**, **Tailwind CSS** y una variedad de librerías especializadas para gráficos, formularios, calendarios y más.
 
-With TailAdmin, you get access to all the necessary dashboard UI components, elements, and pages required to build a
-feature-rich and complete dashboard or admin panel. Whether you're building dashboard or admin panel for a complex web
-application or a simple website, TailAdmin is the perfect solution to help you get up and running quickly.
+## 🚀 Características principales
 
-![TailAdmin React.js Dashboard Preview](./banner.png)
+- Interfaz moderna y responsiva con Tailwind CSS.
+- Manejo de formularios con `react-hook-form`.
+- Peticiones HTTP con `axios` y manejo de datos con `react-query`.
+- Soporte para drag and drop, subida de archivos y notificaciones.
+- Enrutamiento con `react-router`.
+- Arquitectura modular y optimizada para producción con Vite.
 
-## Overview
+## 📦 Tecnologías y librerías usadas
 
-TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and
-control panels. It's built on:
+### Dependencias principales
 
-- React 19
-- TypeScript
-- Tailwind CSS
+| Librería                        | Propósito                                      |
+|--------------------------------|------------------------------------------------|
+| `react` / `react-dom`          | Librería principal para UI                     |
+| `react-router`                 | Enrutamiento SPA                               |
+| `axios`                        | Cliente HTTP                                   |
+| `@tanstack/react-query`        | Manejo de peticiones y caché de datos          |
+| `react-hook-form`             | Formularios con validación                     |
+| `react-toastify`               | Notificaciones                                 |
+| `flatpickr`                    | Selector de fechas                             |
+| `@fullcalendar/*`             | Calendario interactivo                         |
+| `apexcharts` / `react-apexcharts` | Gráficos y visualización de datos         |
+| `@react-jvectormap/*`         | Mapas interactivos                             |
+| `react-dnd` / `react-dnd-html5-backend` | Drag & drop                         |
+| `react-dropzone`              | Subida de archivos                             |
+| `react-helmet-async`          | Manipulación del head (SEO, meta tags, etc.)   |
+| `swiper`                      | Carruseles y sliders                           |
+| `clsx`                        | Utilidad para clases condicionales             |
+| `tailwind-merge`              | Combinar clases Tailwind sin conflictos        |
 
-### Quick Links
+### Herramientas de desarrollo
 
-- [✨ Visit Website](https://tailadmin.com)
-- [📄 Documentation](https://tailadmin.com/docs)
-- [⬇️ Download](https://tailadmin.com/download)
-- [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1214477970819985778)
-- [⚡ Get PRO Version](https://tailadmin.com/pricing)
+| Herramienta                    | Uso                                             |
+|-------------------------------|--------------------------------------------------|
+| `vite`                        | Bundler ultrarrápido                            |
+| `typescript`                  | Tipado estático                                 |
+| `eslint`                      | Linter de código                                |
+| `tailwindcss`                 | Estilos utilitarios                             |
+| `vite-plugin-svgr`           | Importar SVG como componentes React             |
 
-### Demos
+## 📂 Estructura del proyecto (resumida)
 
-- [Free Version](https://free-react-demo.tailadmin.com/)
-- [Pro Version](https://react-demo.tailadmin.com)
-
-### Other Versions
-
-- [HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-
-## Installation
-
-### Prerequisites
-
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
-
-- Node.js 18.x or later (recommended to use Node.js 20.x or later)
-
-### Cloning the Repository
-
-Clone the repository using the following command:
-
-```bash
-git clone https://github.com/TailAdmin/free-react-tailwind-admin-dashboard.git
+```
+src/
+│
+├── components/         # Componentes reutilizables
+├── pages/              # Páginas del sistema
+├── services/           # Peticiones HTTP (axios)
+├── hooks/              # Hooks personalizados
+├── assets/             # Imágenes, íconos, etc.
+└── App.tsx             # Componente principal
 ```
 
-> Windows Users: place the repository near the root of your drive if you face issues while cloning.
+## ⚙️ Scripts disponibles
 
-1. Install dependencies:
+| Comando           | Descripción                                     |
+|------------------|-------------------------------------------------|
+| `npm run dev`     | Levanta el servidor de desarrollo (Vite)       |
+| `npm run build`   | Compila la app para producción                  |
+| `npm run preview` | Previsualiza el build de producción             |
+| `npm run lint`    | Ejecuta ESLint sobre el código                  |
 
+## 🚀 Primeros pasos
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/Mah0j0/CrocaChips-Frontend.git
+   cd CrocaChips-Frontend
+   ```
+
+2. Instala las dependencias:
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
-   > Use the `--legacy-peer-deps` flag, if you face issues while installing.
+3. Crea un archivo `.env` basado en `.env.example` y configura tu API:
+   ```env
+   VITE_API_URL=http://localhost:3000/api
+   ```
 
-2. Start the development server:
+4. Inicia el servidor de desarrollo:
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-## Components
+📊 DASHBOARDS RECOMENDADOS
+🔹 1. Dashboard de Ventas
+KPIs:
+✅ Total de ventas del mes / semana
 
-TailAdmin is a pre-designed starting point for building a web-based dashboard using React.js and Tailwind CSS. The
-template includes:
+📈 Tendencia de ventas por fecha
 
-- Sophisticated and accessible sidebar
-- Data visualization components
-- Prebuilt profile management and 404 page
-- Tables and Charts(Line and Bar)
-- Authentication forms and input elements
-- Alerts, Dropdowns, Modals, Buttons and more
-- Can't forget Dark Mode 🕶️
+🧍‍♂️ Ventas por vendedor
 
-All components are built with React and styled using Tailwind CSS for easy customization.
+🛍️ Productos más vendidos (por cantidad y por monto)
 
-## Feature Comparison
+🧾 Ticket promedio = Total ventas / número de ventas
 
-### Free Version
+🧑‍🤝‍🧑 Clientes frecuentes (mayor cantidad de compras)
 
-- 1 Unique Dashboard
-- 30+ dashboard components
-- 50+ UI elements
-- Basic Figma design files
-- Community support
+Gráficos sugeridos:
+Línea temporal de ventas (por día/semana/mes)
 
-### Pro Version
+Barras horizontales: Top 10 productos
 
-- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, Stocks (more coming soon)
-- 400+ dashboard components and UI elements
-- Complete Figma design file
-- Email support
+Pie chart: Participación por vendedor
 
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
+🔹 2. Dashboard de Inventario
+KPIs:
+📦 Stock actual por producto
 
-## Changelog
+🆕 Productos recién producidos (últimos lotes)
 
-### Version 2.0.2 - [March 25, 2025]
+⚠️ Productos con bajo stock
 
-- Upgraded to React 19
-- Included overrides for packages to prevent peer dependency errors.
-- Migrated from react-flatpickr to flatpickr package for React 19 support
+♻️ Días promedio para agotar stock
 
-### Version 2.0.1 - [February 27, 2025]
+📤 Movimientos de salida (ventas)
 
-#### Update Overview
+📥 Movimientos de entrada (producción)
 
-- Upgraded to Tailwind CSS v4 for better performance and efficiency.
-- Updated class usage to match the latest syntax and features.
-- Replaced deprecated class and optimized styles.
+Gráficos sugeridos:
+Barras apiladas: Movimientos (entradas/salidas) por producto
 
-#### Next Steps
+Tabla: Productos con menor stock
 
-- Run npm install or yarn install to update dependencies.
-- Check for any style changes or compatibility issues.
-- Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-- This update keeps the project up to date with the latest Tailwind improvements. 🚀
+Línea de tiempo: Evolución del inventario por producto
 
-### Version 2.0.0 - [February 2025]
+🔹 3. Dashboard de Producción
+KPIs:
+🏭 Total producido en el mes
 
-A major update with comprehensive redesign and modern React patterns implementation.
+🕒 Tiempo promedio entre producciones
 
-#### Major Improvements
+📅 Productos producidos por fecha
 
-- Complete UI redesign with modern React patterns
-- New features: collapsible sidebar, chat, and calendar
-- Improved performance and accessibility
-- Updated data visualization using ApexCharts
+🚨 Diferencia entre producción y ventas (¿sobrestock o falta?)
 
-#### Key Features
+Gráficos sugeridos:
+Línea temporal: Cantidad producida por día
 
-- Redesigned dashboards (Ecommerce, Analytics, Marketing, CRM)
-- Enhanced navigation with React Router integration
-- Advanced tables with sorting and filtering
-- Calendar with drag-and-drop support
-- New UI components and improved existing ones
+Tabla: Comparativa entre producción y ventas por producto
 
-#### Breaking Changes
+🔹 4. Dashboard de Clientes
+KPIs:
+👥 Total de clientes activos
 
-- Updated sidebar component API
-- Migrated charts to ApexCharts
-- Revised authentication system
+📈 Nuevos clientes por mes
 
-[Read more](https://tailadmin.com/docs/update-logs/react) on this release.
+💸 Clientes con mayor volumen de compra
 
-### Version 1.3.7 - [June 20, 2024]
+⏱️ Tiempo promedio entre compras
 
-#### Enhancements
+Gráficos sugeridos:
+Tabla: Clientes con más compras
 
-1. Remove Repetition of DefaultLayout in every Pages
-2. Add ClickOutside Component for reduce repeated functionality in Header Message, Notification and User Dropdowns.
-
-### Version 1.3.6 - [Jan 31, 2024]
-
-#### Enhancements
-
-1. Integrate flatpickr in [Date Picker/Form Elements]
-2. Change color after select an option [Select Element/Form Elements].
-3. Make it functional [Multiselect Dropdown/Form Elements].
-4. Make best value editable [Pricing Table One/Pricing Table].
-5. Rearrange Folder structure.
-
-### Version 1.2.0 - [Apr 28, 2023]
-
-- Add Typescript in TailAdmin React.
-
-### Version 1.0.0 - Initial Release - [Mar 13, 2023]
-
-- Initial release of TailAdmin React.
-
-## License
-
-TailAdmin React.js Free Version is released under the MIT License.
-
-## Support
-
-If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing
-and maintaining this template.
+Gráfico de barras: Nuevos clientes por mes
