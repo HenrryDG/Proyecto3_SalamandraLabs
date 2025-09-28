@@ -70,8 +70,8 @@ src/
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/Mah0j0/CrocaChips-Frontend.git
-   cd CrocaChips-Frontend
+   git clone https://github.com/HenrryDG/Proyecto3_SalamandraLabs_Frontend.git
+   cd Proyecto3_SalamandraLabs_Frontend
    ```
 
 2. Instala las dependencias:
