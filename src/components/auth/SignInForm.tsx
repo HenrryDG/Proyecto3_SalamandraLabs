@@ -4,6 +4,7 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../hooks/auth/useAuth"
+import { Link } from "react-router";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +27,18 @@ export default function SignInForm() {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
+            <div className="absolute top-6">
+              <Link to="/" className="block mb-4">
+                <img
+                  width={231}
+                  height={48}
+                  src="/images/logo/auth-logo.svg"
+                  alt="Logo"
+                />
+              </Link>
+            </div>
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Iniciar Sesión
+              Iniciar Seasasdassión
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Ingresa tus credenciales
