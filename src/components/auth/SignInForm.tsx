@@ -28,7 +28,7 @@ export default function SignInForm() {
         <div>
           <div className="mb-5 sm:mb-8">
             <div className="absolute top-6">
-              <Link to="/" className="block mb-4">
+              <Link to="https://www.esetel.com/" className="block mb-4" target="_blank" rel="noreferrer">
                 <img
                   width={231}
                   height={48}
