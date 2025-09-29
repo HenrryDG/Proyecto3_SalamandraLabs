@@ -23,7 +23,7 @@ interface Props {
 type FormKeys = keyof ClienteDTO;
 
 const campos: { key: FormKeys; label: string; type?: string; validator: (val: string) => string | null }[] = [
-  { key: "carnet", label: "Carnet", validator: (v) => validarLongitud(v, 6, 12) || validarCarnet(v) },
+  { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
   { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
@@ -102,18 +102,35 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
 
-              // Teléfono: solo dígitos y máx 8
+              // SOLO DÍGITOS
               digitsOnly={c.key === "telefono"}
               inputMode={c.key === "telefono" ? "numeric" : undefined}
 
+              // CANTIDAD MÁXIMA DE CARACTERES
               maxLength={
                 // Teléfono: máx 8
                 c.key === "telefono" ? 8 :
-                  // Nombres y apellidos: máx 30
-                  (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
-                    undefined}
+                  // Carnet: máx 12
+                  c.key === "carnet" ? 12 :
+                    // Lugar de Trabajo: máx 60
+                    c.key === "lugar_trabajo" ? 60 :
+                      // Ocupación: máx 30
+                      c.key === "tipo_trabajo" ? 30 :
+                        // Dirección: máx 255
+                        c.key === "direccion" ? 255 :
+                          // Correo: máx 50
+                          c.key === "correo" ? 50 :
+                            // Nombres y apellidos: máx 30
+                            (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
+                              undefined}
 
-              lettersOnly={c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno"}
+              // SOLO LETRAS
+              lettersOnly={
+                c.key === "nombre" ||
+                c.key === "apellido_paterno" ||
+                c.key === "apellido_materno" ||
+                c.key === "lugar_trabajo" ||
+                c.key === "tipo_trabajo"}
             />
           ))}
         </div>

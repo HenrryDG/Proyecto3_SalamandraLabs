@@ -33,9 +33,9 @@ export const validarIngreso = (ingreso: string): string | null => {
   return null;
 }
 
-export const validarCarnet = (carnet: string): string | null => {
+export const validarCarnet = (carnet: string, min: number): string | null => {
   if (carnet.trim() === "") return "El carnet es obligatorio";
-  if (carnet.length < 6 || carnet.length > 10) return "El carnet debe tener entre 6 y 10 caracteres";
+  if (carnet.length < min) return `El carnet debe tener al menos ${min} caracteres`;
   if (!/^[a-zA-Z0-9]+$/.test(carnet)) return "El carnet debe contener solo letras y números";
   return null;
 };
