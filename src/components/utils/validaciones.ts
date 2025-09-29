@@ -13,6 +13,12 @@ export const validarTexto = (valor: string) => {
   return null;
 };
 
+export const validarTextoMinimo = (valor: string, min: number) => {
+  if (valor.trim() === "") return `El campo es obligatorio`;
+  if (valor.length < min) return `El campo debe tener al menos ${min} caracteres`;
+  return null;
+};
+
 export const validarLongitud = (valor: string, min: number, max: number): string | null => {
   if (valor.trim() === "") return `El campo es obligatorio`;
   if (valor.length < min || valor.length > max) return `El campo debe tener entre ${min} y ${max} caracteres`;
