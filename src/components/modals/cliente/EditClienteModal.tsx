@@ -11,7 +11,8 @@ import {
   validarCarnet,
   validarCorreo,
   validarIngreso,
-  validarLongitud
+  validarLongitud,
+  validarTextoMinimo
 } from "../../utils/validaciones";
 
 interface Props {
@@ -30,11 +31,11 @@ const campos: {
   validator: (val: string) => string | null
 }[] = [
     { key: "carnet", label: "Carnet", validator: (v) => validarLongitud(v, 6, 12) || validarCarnet(v) },
-    { key: "nombre", label: "Nombre", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-    { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-    { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+    { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+    { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
     { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
-    { key: "tipo_trabajo", label: "Tipo de Trabajo", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+    { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
     { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
     { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
     { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
@@ -127,10 +128,19 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
+
               // Teléfono: solo dígitos y máx 8
               digitsOnly={c.key === "telefono"}
-              maxLength={c.key === "telefono" ? 8 : undefined}
               inputMode={c.key === "telefono" ? "numeric" : undefined}
+
+              maxLength={
+                // Teléfono: máx 8
+                c.key === "telefono" ? 8 :
+                  // Nombres y apellidos: máx 30
+                  (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
+                    undefined}
+
+              lettersOnly={c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno"}
             />
           ))}
         </div>
