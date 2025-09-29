@@ -12,12 +12,16 @@ interface InputProps {
   className?: string;
   min?: string | number;  // ✅ acepta string o number
   max?: string | number;  // ✅ acepta string o number
- step?: number;
+  step?: number;
   disabled?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string;
   required?: boolean;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  // Filtra solo dígitos y respeta maxLength
+  digitsOnly?: boolean;
 }
 
 
@@ -38,6 +42,9 @@ const Input: FC<InputProps> = ({
   error = false,
   hint,
   required = false,
+  maxLength,
+  inputMode,
+  digitsOnly,
 }) => {
   let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
@@ -50,6 +57,72 @@ const Input: FC<InputProps> = ({
   } else {
     inputClasses += ` bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800`;
   }
+
+  // Prevención de entrada no numérica antes de insertar
+  const handleBeforeInput: React.FormEventHandler<HTMLInputElement> | undefined = digitsOnly
+    ? (e) => {
+      const be = e as unknown as InputEvent;
+      const data = (be && (be as any).data) as string | null;
+      if (!data) return; // borrar/inputs especiales
+      if (!/^\d+$/.test(data)) {
+        e.preventDefault();
+      }
+    }
+    : undefined;
+
+  // Filtrado de teclas: solo dígitos y navegación permitida
+  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> | undefined = digitsOnly
+    ? (e) => {
+      const allowedKeys = [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End",
+        "Enter",
+      ];
+      if (allowedKeys.includes(e.key)) return;
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+    : undefined;
+
+  // Validación de pegado: solo dígitos y límite de caracteres
+  const handlePaste: React.ClipboardEventHandler<HTMLInputElement> | undefined = digitsOnly
+    ? (e) => {
+      const text = e.clipboardData.getData("text");
+      const digits = text.replace(/\D+/g, "");
+      if (digits.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      if (maxLength) {
+        // Si excede maxLength, reemplazar por la versión truncada
+        const current = (e.target as HTMLInputElement).value;
+        const selectionStart = (e.target as HTMLInputElement).selectionStart ?? current.length;
+        const selectionEnd = (e.target as HTMLInputElement).selectionEnd ?? current.length;
+        const newLen = current.length - (selectionEnd - selectionStart) + digits.length;
+        if (newLen > maxLength) {
+          e.preventDefault();
+          const room = maxLength - (current.length - (selectionEnd - selectionStart));
+          const toInsert = room > 0 ? digits.slice(0, room) : "";
+          const next = current.slice(0, selectionStart) + toInsert + current.slice(selectionEnd);
+          (e.target as HTMLInputElement).value = next;
+          if (onChange) {
+            const evt = {
+              ...e,
+              target: e.target as HTMLInputElement,
+              currentTarget: e.target as HTMLInputElement,
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
+            onChange(evt);
+          }
+        }
+      }
+    }
+    : undefined;
 
   return (
     <div className="relative w-full flex flex-col gap-1">
@@ -75,17 +148,21 @@ const Input: FC<InputProps> = ({
         disabled={disabled}
         required={required}
         className={inputClasses}
+        maxLength={maxLength}
+        inputMode={inputMode}
+        onBeforeInput={handleBeforeInput}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
       />
 
       {hint && (
         <p
-          className={`mt-1.5 text-xs ${
-            error
-              ? "text-error-500"
-              : success
+          className={`mt-1.5 text-xs ${error
+            ? "text-error-500"
+            : success
               ? "text-success-500"
               : "text-gray-500"
-          }`}
+            }`}
         >
           {hint}
         </p>
