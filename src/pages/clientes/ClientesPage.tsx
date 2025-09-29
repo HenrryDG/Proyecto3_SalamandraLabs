@@ -32,7 +32,7 @@ export default function ClientesPage() {
 
   // ------------- Paginación ------------
   const [paginaActual, setPaginaActual] = useState(1);
-  const elementosPorPagina = 7;
+  const elementosPorPagina = 6;
 
   // -------------- Filtrado -------------
   const clientesFiltrados = (clientes ?? []).filter((cliente) =>

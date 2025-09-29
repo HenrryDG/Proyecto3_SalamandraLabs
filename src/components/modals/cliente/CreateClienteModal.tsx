@@ -4,15 +4,13 @@ import Button from "../../ui/button/Button";
 import Input from "../../form/input/InputField";
 import { Modal } from "../../ui/modal";
 import { ClienteDTO } from "../../../types/cliente";
+
 import {
-  validarTexto,
-  validarTelefono,
-  validarCarnet,
-  validarCorreo,
-  validarIngreso,
-  validarLongitud,
-  validarTextoMinimo
-} from "../../utils/validaciones";
+  campos,
+  camposObligatorios,
+  getMaxLength,
+  FormKeys
+} from "../../form/configs/clienteFormConfig";
 
 interface Props {
   isOpen: boolean;
@@ -20,47 +18,27 @@ interface Props {
   onCreated?: () => void;
 }
 
-type FormKeys = keyof ClienteDTO;
-
-const campos: { key: FormKeys; label: string; type?: string; validator: (val: string) => string | null }[] = [
-  { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
-  { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
-  { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
-  { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
-  { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
-  { key: "telefono", label: "Teléfono", validator: validarTelefono },
-];
-
-
 export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props) {
   const { mutate, isPending } = useCreateCliente();
 
-  // Estado del formulario y errores
+  // Estado inicial vacío
   const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
+
+  // Formulario y errores
   const [form, setForm] = useState(initialForm);
   const [errores, setErrores] = useState(initialForm);
-
 
   // Maneja cambios en los campos del formulario
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setForm(prev => ({ ...prev, [key]: value }));
 
-    // Validar el campo al cambiar
+    // Validar el campo y actualizar errores
     const campo = campos.find(c => c.key === key);
     setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
   };
 
-  // Campos obligatorios (excepto correo)
-  const camposObligatorios: FormKeys[] = campos
-    .filter(c => c.key !== "correo")
-    .map(c => c.key);
-
-  // Verifica si hay errores o campos obligatorios vacíos
+  // Verifica si hay errores en el formulario
   const hayErrores =
     Object.values(errores).some(e => e !== "") ||
     camposObligatorios.some(key => form[key] === "");
@@ -69,7 +47,7 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
   const handleSubmit = () => {
     if (hayErrores) return;
 
-    // Convertir teléfono a número
+    // Preparar datos (convertir teléfono a número)
     const data: ClienteDTO = { ...form, telefono: Number(form.telefono) };
 
     // Llamar a la mutación para crear el cliente
@@ -102,31 +80,11 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
 
-              // SOLO DÍGITOS
               digitsOnly={c.key === "telefono"}
               inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
 
-              // CANTIDAD MÁXIMA DE CARACTERES
-              maxLength={
-                // Teléfono: máx 8
-                c.key === "telefono" ? 8 :
-                  // Carnet: máx 12
-                  c.key === "carnet" ? 12 :
-                    // Lugar de Trabajo: máx 60
-                    c.key === "lugar_trabajo" ? 60 :
-                      // Ocupación: máx 30
-                      c.key === "tipo_trabajo" ? 30 :
-                        // Dirección: máx 255
-                        c.key === "direccion" ? 255 :
-                          // Correo: máx 50
-                          c.key === "correo" ? 50 :
-                            // Ingreso: 6 enteros + punto + 2 decimales => 9
-                            c.key === "ingreso_mensual" ? 9 :
-                              // Nombres y apellidos: máx 30
-                              (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
-                                undefined}
+              maxLength={getMaxLength(c.key)}
 
-              // SOLO LETRAS
               lettersOnly={
                 c.key === "nombre" ||
                 c.key === "apellido_paterno" ||

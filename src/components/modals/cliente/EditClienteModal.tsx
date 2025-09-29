@@ -2,58 +2,37 @@ import { useEffect, useState } from "react";
 import { Modal } from "../../ui/modal";
 import Input from "../../form/input/InputField";
 import Button from "../../ui/button/Button";
-import { Cliente, ClienteDTO } from "../../../types/cliente";
+import { Cliente } from "../../../types/cliente";
 import { useUpdateCliente } from "../../../hooks/cliente/useUpdateCliente";
 import { useToggleCliente } from "../../../hooks/cliente/useToggleCliente";
+
+// Configuración de campos reutilizable
 import {
-  validarTexto,
-  validarTelefono,
-  validarCarnet,
-  validarCorreo,
-  validarIngreso,
-  validarLongitud,
-  validarTextoMinimo
-} from "../../utils/validaciones";
+  campos,
+  camposObligatorios,
+  getMaxLength,
+  FormKeys
+} from "../../form/configs/clienteFormConfig";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cliente: Cliente | null; // Puede llegar null si no está seleccionado
-  onUpdated?: () => void;
+  cliente: Cliente | null;   // Cliente a editar (puede ser null)
+  onUpdated?: () => void;    // Callback después de actualizar
 }
-
-type FormKeys = keyof ClienteDTO;
-
-const campos: {
-  key: FormKeys;
-  label: string;
-  type?: string;
-  validator: (val: string) => string | null
-}[] = [
-    { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
-    { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-    { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-    { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-    { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
-    { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-    { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
-    { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
-    { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
-    { key: "telefono", label: "Teléfono", validator: validarTelefono },
-  ];
 
 export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }: Props) {
   const { update, isUpdating } = useUpdateCliente();
   const { toggle, isToggling } = useToggleCliente();
 
-  // Estado inicial con cliente o vacío
+  // Estado inicial vacío
   const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
+
+  // Formulario y errores
   const [form, setForm] = useState(initialForm);
   const [errores, setErrores] = useState(initialForm);
 
-
-
-  // Cargar datos del cliente al abrir modal
+  // Cargar datos del cliente al abrir el modal
   useEffect(() => {
     if (cliente) {
       const formData: Record<FormKeys, string> = {
@@ -68,24 +47,23 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
         correo: cliente.correo ?? "",
         telefono: String(cliente.telefono),
       };
+
       setForm(formData);
       setErrores(initialForm);
     }
   }, [cliente]);
 
+  // Maneja cambios en los campos del formulario
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setForm(prev => ({ ...prev, [key]: value }));
 
-    // Validar
+    // Validar el campo y actualizar errores
     const campo = campos.find(c => c.key === key);
     setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
   };
 
-  const camposObligatorios: FormKeys[] = campos
-    .filter(c => c.key !== "correo")
-    .map(c => c.key);
-
+  // Verifica si hay errores en el formulario
   const hayErrores =
     Object.values(errores).some(e => e !== "") ||
     camposObligatorios.some(key => form[key] === "");
@@ -94,7 +72,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
   const handleSubmit = async () => {
     if (!cliente || hayErrores) return;
 
-    // Preparar datos
+    // Preparar datos actualizados
     const data: Cliente = {
       ...cliente,
       ...form,
@@ -102,7 +80,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
       ingreso_mensual: Number(form.ingreso_mensual),
     };
 
-    // Actualizar cliente
+    // Ejecutar actualización
     const updated = await update(data);
     if (updated) {
       onClose();
@@ -117,6 +95,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
           Editar Cliente
         </h2>
 
+        {/* Formulario de edición */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {campos.map(c => (
             <Input
@@ -131,27 +110,14 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
 
               // SOLO DÍGITOS
               digitsOnly={c.key === "telefono"}
-              inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
+              inputMode={
+                c.key === "telefono" ? "numeric" :
+                c.key === "ingreso_mensual" ? "decimal" :
+                undefined
+              }
 
               // CANTIDAD MÁXIMA DE CARACTERES
-              maxLength={
-                // Teléfono: máx 8
-                c.key === "telefono" ? 8 :
-                  // Carnet: máx 12
-                  c.key === "carnet" ? 12 :
-                    // Lugar de Trabajo: máx 60
-                    c.key === "lugar_trabajo" ? 60 :
-                      // Ocupación: máx 30
-                      c.key === "tipo_trabajo" ? 30 :
-                        // Dirección: máx 255
-                        c.key === "direccion" ? 255 :
-                          // Correo: máx 50
-                          c.key === "correo" ? 50 :
-                            // Ingreso: 6 enteros + punto + 2 decimales => 9
-                            c.key === "ingreso_mensual" ? 9 :
-                              // Nombres y apellidos: máx 30
-                              (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
-                                undefined}
+              maxLength={getMaxLength(c.key)}
 
               // SOLO LETRAS
               lettersOnly={
@@ -159,7 +125,10 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
                 c.key === "apellido_paterno" ||
                 c.key === "apellido_materno" ||
                 c.key === "lugar_trabajo" ||
-                c.key === "tipo_trabajo"}
+                c.key === "tipo_trabajo"
+              }
+
+              // CONFIGURACIÓN PARA DECIMAL
               decimal={c.key === "ingreso_mensual"}
               maxIntegerDigits={6}
               maxDecimalDigits={2}
@@ -167,15 +136,16 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
           ))}
         </div>
 
-
+        {/* Acciones */}
         <div className="flex justify-end gap-3 pt-4">
+          {/* Habilitar / Deshabilitar */}
           <Button
             onClick={async () => {
               if (!cliente) return;
 
-              await toggle(cliente.id);  // Ejecuta el toggle
-              onClose();                 // Cierra el modal
-              onUpdated?.();             // Refresca datos si hay callback
+              await toggle(cliente.id);  // Ejecuta toggle
+              onClose();                 // Cierra modal
+              onUpdated?.();            // Refresca datos
             }}
             disabled={isToggling}
           >
@@ -186,6 +156,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
                 : "Habilitar"}
           </Button>
 
+          {/* Cancelar y Guardar */}
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button
             variant="primary"
