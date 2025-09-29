@@ -4,7 +4,15 @@ import Button from "../../ui/button/Button";
 import Input from "../../form/input/InputField";
 import { Modal } from "../../ui/modal";
 import { ClienteDTO } from "../../../types/cliente";
-import { validarTexto, validarTelefono, validarCarnet, validarCorreo, validarIngreso, validarLongitud } from "../../utils/validaciones";
+import {
+  validarTexto,
+  validarTelefono,
+  validarCarnet,
+  validarCorreo,
+  validarIngreso,
+  validarLongitud,
+  validarTextoMinimo
+} from "../../utils/validaciones";
 
 interface Props {
   isOpen: boolean;
@@ -15,12 +23,12 @@ interface Props {
 type FormKeys = keyof ClienteDTO;
 
 const campos: { key: FormKeys; label: string; type?: string; validator: (val: string) => string | null }[] = [
-  { key: "carnet", label: "Carnet", validator: (v) => validarLongitud(v, 6, 12) || validarCarnet(v) },
-  { key: "nombre", label: "Nombre", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
-  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+  { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
+  { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
-  { key: "tipo_trabajo", label: "Tipo de Trabajo", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
+  { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
   { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
   { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
   { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
@@ -52,7 +60,6 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
     .filter(c => c.key !== "correo")
     .map(c => c.key);
 
-  
   // Verifica si hay errores o campos obligatorios vacíos
   const hayErrores =
     Object.values(errores).some(e => e !== "") ||
@@ -88,12 +95,47 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
             <Input
               key={c.key}
               label={c.label}
-              type={c.type}
+              type={c.key === "ingreso_mensual" ? "text" : c.type}
               value={form[c.key]}
               onChange={handleInputChange(c.key)}
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
+
+              // SOLO DÍGITOS
+              digitsOnly={c.key === "telefono"}
+              inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
+
+              // CANTIDAD MÁXIMA DE CARACTERES
+              maxLength={
+                // Teléfono: máx 8
+                c.key === "telefono" ? 8 :
+                  // Carnet: máx 12
+                  c.key === "carnet" ? 12 :
+                    // Lugar de Trabajo: máx 60
+                    c.key === "lugar_trabajo" ? 60 :
+                      // Ocupación: máx 30
+                      c.key === "tipo_trabajo" ? 30 :
+                        // Dirección: máx 255
+                        c.key === "direccion" ? 255 :
+                          // Correo: máx 50
+                          c.key === "correo" ? 50 :
+                            // Ingreso: 6 enteros + punto + 2 decimales => 9
+                            c.key === "ingreso_mensual" ? 9 :
+                              // Nombres y apellidos: máx 30
+                              (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
+                                undefined}
+
+              // SOLO LETRAS
+              lettersOnly={
+                c.key === "nombre" ||
+                c.key === "apellido_paterno" ||
+                c.key === "apellido_materno" ||
+                c.key === "lugar_trabajo" ||
+                c.key === "tipo_trabajo"}
+              decimal={c.key === "ingreso_mensual"}
+              maxIntegerDigits={6}
+              maxDecimalDigits={2}
             />
           ))}
         </div>
