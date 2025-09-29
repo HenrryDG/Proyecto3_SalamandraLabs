@@ -127,6 +127,10 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
+              // Teléfono: solo dígitos y máx 8
+              digitsOnly={c.key === "telefono"}
+              maxLength={c.key === "telefono" ? 8 : undefined}
+              inputMode={c.key === "telefono" ? "numeric" : undefined}
             />
           ))}
         </div>

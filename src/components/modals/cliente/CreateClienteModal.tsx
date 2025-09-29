@@ -52,7 +52,6 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
     .filter(c => c.key !== "correo")
     .map(c => c.key);
 
-  
   // Verifica si hay errores o campos obligatorios vacíos
   const hayErrores =
     Object.values(errores).some(e => e !== "") ||
@@ -94,6 +93,10 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
+              // Teléfono: solo dígitos y máx 8
+              digitsOnly={c.key === "telefono"}
+              maxLength={c.key === "telefono" ? 8 : undefined}
+              inputMode={c.key === "telefono" ? "numeric" : undefined}
             />
           ))}
         </div>
