@@ -122,7 +122,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
             <Input
               key={c.key}
               label={c.label}
-              type={c.type}
+              type={c.key === "ingreso_mensual" ? "text" : c.type}
               value={form[c.key]}
               onChange={handleInputChange(c.key)}
               error={!!errores[c.key]}
@@ -131,7 +131,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
 
               // SOLO DÍGITOS
               digitsOnly={c.key === "telefono"}
-              inputMode={c.key === "telefono" ? "numeric" : undefined}
+              inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
 
               // CANTIDAD MÁXIMA DE CARACTERES
               maxLength={
@@ -147,9 +147,11 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
                         c.key === "direccion" ? 255 :
                           // Correo: máx 50
                           c.key === "correo" ? 50 :
-                            // Nombres y apellidos: máx 30
-                            (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
-                              undefined}
+                            // Ingreso: 6 enteros + punto + 2 decimales => 9
+                            c.key === "ingreso_mensual" ? 9 :
+                              // Nombres y apellidos: máx 30
+                              (c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno") ? 30 :
+                                undefined}
 
               // SOLO LETRAS
               lettersOnly={
@@ -158,6 +160,9 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
                 c.key === "apellido_materno" ||
                 c.key === "lugar_trabajo" ||
                 c.key === "tipo_trabajo"}
+              decimal={c.key === "ingreso_mensual"}
+              maxIntegerDigits={6}
+              maxDecimalDigits={2}
             />
           ))}
         </div>
