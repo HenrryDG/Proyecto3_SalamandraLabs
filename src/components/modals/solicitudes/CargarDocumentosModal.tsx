@@ -11,6 +11,7 @@ interface ImageValidation {
     isValid: boolean;
     error?: string;
     success?: string;
+    warning?: string;
 }
 
 export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumentosModalProps) {
@@ -22,43 +23,53 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dropzoneRef = useRef<HTMLDivElement>(null);
 
-    // Validar formato de archivo
+    // Validar formato
     const validateFileFormat = (file: File): boolean => {
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const validTypes = ["image/jpeg", "image/jpg", "image/png"];
         return validTypes.includes(file.type);
     };
 
     // Validar calidad de imagen
-    const validateImageQuality = (file: File): Promise<boolean> => {
+
+    const validateImageQuality = (file: File): Promise<{ isValid: boolean; warning?: string }> => {
         return new Promise((resolve) => {
             const img = new Image();
+            const minSize = 100 * 1024; // 100KB mínimo
             img.onload = () => {
-                const isValidSize = file.size > 200 * 1024; // > 200KB
-                const isValidResolution = img.width >= 800 && img.height >= 600;
-                resolve(isValidSize && isValidResolution);
+                if (file.size < minSize) {
+                    resolve({ isValid: false });
+                } else {
+                    resolve({ isValid: true });
+                }
             };
-            img.onerror = () => resolve(false);
+            img.onerror = () => resolve({ isValid: false });
             img.src = URL.createObjectURL(file);
         });
     };
 
-    // Manejar selección de archivo
+    // Manejar selección
     const handleFileSelect = useCallback(async (file: File) => {
         setSelectedFile(file);
         setValidation({ isValid: false });
 
-        // Validar formato
         if (!validateFileFormat(file)) {
             setValidation({
                 isValid: false,
-                error: "Formato inválido. Solo se permiten imágenes en formato JPG, JPEG o PNG."
+                error: "Formato inválido. Solo se permiten imágenes JPG, JPEG o PNG."
             });
             return;
         }
 
-        // Validar calidad
-        const isValidQuality = await validateImageQuality(file);
-        if (!isValidQuality) {
+        if (file.size < 100 * 1024) {
+            setValidation({
+                isValid: false,
+                error: "La imagen es demasiado liviana. Debe tener al menos 100 KB."
+            });
+            return;
+        }
+
+        const qualityResult = await validateImageQuality(file);
+        if (!qualityResult.isValid) {
             setValidation({
                 isValid: false,
                 error: "La imagen es demasiado pequeña o de baja calidad. Sube una imagen más clara."
@@ -66,102 +77,84 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
             return;
         }
 
-        // Crear preview
         const reader = new FileReader();
-        reader.onload = (e) => {
-            setPreview(e.target?.result as string);
-        };
+        reader.onload = (e) => setPreview(e.target?.result as string);
         reader.readAsDataURL(file);
 
         setValidation({
             isValid: true,
-            success: "Imagen cargada correctamente."
+            success: "Imagen cargada correctamente.",
+            warning: qualityResult.warning
         });
     }, []);
 
-    // Manejar drop de archivos
+    // Manejar drag & drop
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) {
-            handleFileSelect(files[0]);
-        }
+        if (files.length > 0) handleFileSelect(files[0]);
     }, [handleFileSelect]);
 
-    // Manejar click en dropzone
-    const handleDropzoneClick = () => {
-        fileInputRef.current?.click();
-    };
+    const handleDropzoneClick = () => fileInputRef.current?.click();
 
-    // Manejar cambio de input file
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            handleFileSelect(files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
         }
     };
 
-    // Eliminar imagen seleccionada
+    // Eliminar imagen
     const handleRemoveImage = () => {
         setSelectedFile(null);
         setPreview(null);
         setValidation({ isValid: false });
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    // Simular carga
+    const handleLoadAnotherImage = () => {
+        handleRemoveImage();
+        fileInputRef.current?.click();
+    };
+
+    // Simular verificación
     const handleVerifyAndSave = async () => {
         if (!selectedFile || !validation.isValid) return;
 
         setIsUploading(true);
         setShowProgress(true);
-
-        // Simular tiempo de carga
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         setIsUploading(false);
         setShowProgress(false);
 
-        // Aquí se podría implementar la lógica de guardado real
-        console.log('Archivo validado y listo para guardar:', selectedFile);
-
-        // Cerrar modal después de la carga
+        console.log("Archivo validado y listo:", selectedFile);
         onClose();
     };
 
-    // Resetear estado al cerrar
+    // Resetear al cerrar
     const handleClose = () => {
         setSelectedFile(null);
         setPreview(null);
         setValidation({ isValid: false });
         setIsUploading(false);
         setShowProgress(false);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
         onClose();
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[600px] m-4">
-            <div className="relative w-full p-6 bg-white rounded-3xl dark:bg-gray-900">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
+            <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 {/* Header */}
                 <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-2">
-                        Subir Documentos
-                    </h2>
-
-                    {/* Barra de progreso */}
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-2">Subir Documentos</h2>
                     {showProgress && (
-                        <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                            <div className="bg-sky-500 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 mt-3">
+                            <div className="bg-sky-500 h-2 rounded-full animate-pulse" style={{ width: "100%" }}></div>
                         </div>
                     )}
                 </div>
 
-                {/* Zona de carga */}
+                {/* Dropzone / Preview */}
                 <div className="mb-6">
                     {!preview ? (
                         <div
@@ -173,79 +166,70 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
                             className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-900/20 transition-colors"
                         >
                             <div className="flex flex-col items-center">
-                                <svg
-                                    className="w-12 h-12 text-gray-400 mb-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                    />
+                                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <p className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">
-                                    Arrastra aquí tu documento
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    (JPG, JPEG o PNG) o haz clic para seleccionarlo
-                                </p>
+                                <p className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-2">Arrastra aquí tu documento</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">(JPG, JPEG o PNG) o haz clic para seleccionarlo</p>
+                                <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                                    <span>Asegúrate de subir imágenes legibles y de buena calidad.</span>
+                                </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="relative">
-                            <img
-                                src={preview}
-                                alt="Preview"
-                                className="w-full h-64 object-contain rounded-lg border border-gray-200 dark:border-gray-700"
-                            />
-                            <button
-                                onClick={handleRemoveImage}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
-                                title="Eliminar imagen"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                        <div className="space-y-4">
+                            <div className="relative flex justify-center">
+                                <div className="max-w-[300px] max-h-[300px] flex items-center justify-center border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                                    <img src={preview} alt="Preview" className="max-w-full max-h-full object-contain" />
+                                </div>
+                                <button
+                                    onClick={handleRemoveImage}
+                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
+                                    title="Eliminar imagen"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div className="flex justify-center">
+                                <Button variant="outline" onClick={handleLoadAnotherImage} className="text-sm">
+                                    Cargar Otra Imagen
+                                </Button>
+                            </div>
                         </div>
                     )}
 
-                    {/* Input file oculto */}
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        onChange={handleFileInputChange}
-                        className="hidden"
-                    />
+                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleFileInputChange} className="hidden" />
                 </div>
 
-                {/* Mensajes de validación */}
+                {/* Mensajes */}
                 {validation.error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
-                        <p className="text-sm text-red-600 dark:text-red-400">{validation.error}</p>
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                        {validation.error}
                     </div>
                 )}
-
                 {validation.success && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
-                        <p className="text-sm text-green-600 dark:text-green-400">{validation.success}</p>
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 text-green-600 dark:text-green-400 text-sm">
+                        {validation.success}
+                    </div>
+                )}
+                {validation.warning && (
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 text-sm">
+                        {validation.warning}
                     </div>
                 )}
 
-                {/* Botones de acción */}
+                {/* Botones */}
                 <div className="flex justify-end gap-3">
-                    <Button variant="outline" onClick={handleClose} disabled={isUploading}>
+                    <Button
+                        variant="outline"
+                        onClick={handleClose}
+                        disabled={isUploading}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                    >
                         Cancelar
                     </Button>
-                    <Button
-                        variant="primary"
-                        onClick={handleVerifyAndSave}
-                        disabled={!validation.isValid || isUploading}
-                    >
+                    <Button variant="primary" onClick={handleVerifyAndSave} disabled={!validation.isValid || isUploading}>
                         {isUploading ? "Verificando..." : "Verificar y Guardar"}
                     </Button>
                 </div>
