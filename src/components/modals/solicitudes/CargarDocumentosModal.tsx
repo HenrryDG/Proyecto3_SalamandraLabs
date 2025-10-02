@@ -191,11 +191,6 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
                                     ✕
                                 </button>
                             </div>
-                            <div className="flex justify-center">
-                                <Button variant="outline" onClick={handleLoadAnotherImage} className="text-sm">
-                                    Cargar Otra Imagen
-                                </Button>
-                            </div>
                         </div>
                     )}
 
@@ -204,23 +199,38 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
 
                 {/* Mensajes */}
                 {validation.error && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
-                        {validation.error}
+                    <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg dark:bg-error-500/15 dark:border-error-800 text-error-600 dark:text-error-500 text-sm text-center">
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4 text-error-600 dark:text-error-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {validation.error}
+                        </div>
                     </div>
                 )}
                 {validation.success && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800 text-green-600 dark:text-green-400 text-sm">
-                        {validation.success}
+                    <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-lg dark:bg-success-500/15 dark:border-success-800 text-success-600 dark:text-success-500 text-sm text-center">
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4 text-success-600 dark:text-success-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {validation.success}
+                        </div>
                     </div>
                 )}
                 {validation.warning && (
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400 text-sm">
-                        {validation.warning}
+                    <div className="mb-4 p-3 bg-warning-50 border border-warning-200 rounded-lg dark:bg-warning-500/15 dark:border-warning-800 text-warning-600 dark:text-orange-400 text-sm text-center">
+                        <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4 text-warning-600 dark:text-warning-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            {validation.warning}
+                        </div>
                     </div>
                 )}
 
                 {/* Botones */}
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-center gap-3">
                     <Button
                         variant="outline"
                         onClick={handleClose}
@@ -229,6 +239,16 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
                     >
                         Cancelar
                     </Button>
+                    {preview && (
+                        <Button
+                            variant="outline"
+                            onClick={handleLoadAnotherImage}
+                            disabled={isUploading}
+                            className="text-sm"
+                        >
+                            Cargar Otra Imagen
+                        </Button>
+                    )}
                     <Button variant="primary" onClick={handleVerifyAndSave} disabled={!validation.isValid || isUploading}>
                         {isUploading ? "Verificando..." : "Verificar y Guardar"}
                     </Button>
