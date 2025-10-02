@@ -232,10 +232,9 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
                 {/* Botones */}
                 <div className="flex justify-center gap-3">
                     <Button
-                        variant="outline"
+                        variant="error"
                         onClick={handleClose}
                         disabled={isUploading}
-                        className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                     >
                         Cancelar
                     </Button>
@@ -244,7 +243,6 @@ export default function CargarDocumentosModal({ isOpen, onClose }: CargarDocumen
                             variant="outline"
                             onClick={handleLoadAnotherImage}
                             disabled={isUploading}
-                            className="text-sm"
                         >
                             Cargar Otra Imagen
                         </Button>
