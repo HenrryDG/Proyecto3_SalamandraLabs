@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { Empleado } from "../../types/empleado";
 import { getEmpleadoAutenticado } from "../../services/empleado/empleadoService";
+import { Empleado } from "../../types/empleado";
 
 
 export const useEmpleado = () => {
