@@ -11,17 +11,36 @@ export default function SolicitudesPage() {
   const { solicitudes, loading, error } = useSolicitudes();
 
   const [filtro, setFiltro] = useState("");
+  const [estado, setEstado] = useState("Pendiente");
+  const [rangoFechas, setRangoFechas] = useState<[Date | null, Date | null]>([null, null]);
 
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 6;
 
   // Filtrar solicitudes por texto y estado
-  const solicitudesFiltradas = (solicitudes ?? [])
-    .filter((s) =>
-      `${s.empleado_nombre} ${s.cliente_nombre} ${s.monto_solicitado} ${s.proposito} ${s.observaciones ?? ""}`
-        .toLowerCase()
-        .includes(filtro.toLowerCase())
-    );
+  const solicitudesFiltradas = (solicitudes ?? []).filter((solicitud) =>
+    `${solicitud.empleado_nombre} ${solicitud.cliente_nombre} ${solicitud.monto_solicitado} ${solicitud.proposito} ${solicitud.observaciones ?? ""}`
+      .toLowerCase()
+      .includes(filtro.toLowerCase())
+  )
+    .filter((solicitud) =>
+      (estado === "Todos" ? true : solicitud.estado === estado)
+    )
+    .filter((solicitud) => {
+      if (!rangoFechas[0] || !rangoFechas[1]) return true;
+
+      function formatDateISO(date: Date | string): string {
+        const d = new Date(date);
+        return d.toISOString().slice(0, 10);
+      }
+
+      const fechaSolicitud = formatDateISO(solicitud.fecha_solicitud);
+      const fechaInicio = formatDateISO(rangoFechas[0]!);
+      const fechaFin = formatDateISO(rangoFechas[1]!);
+
+      return fechaSolicitud >= fechaInicio && fechaSolicitud <= fechaFin;
+    });
+
   const indiceInicio = (paginaActual - 1) * elementosPorPagina;
   const indiceFin = indiceInicio + elementosPorPagina;
   const solicitudesPaginadas = solicitudesFiltradas.slice(indiceInicio, indiceFin);
@@ -29,7 +48,7 @@ export default function SolicitudesPage() {
 
   useEffect(() => {
     setPaginaActual(1);
-  }, [filtro]);
+  }, [filtro, estado]);
 
   const onPrev = () => setPaginaActual((p) => Math.max(p - 1, 1));
   const onNext = () => setPaginaActual((p) => Math.min(p + 1, totalPaginas));
@@ -49,6 +68,10 @@ export default function SolicitudesPage() {
         <SolicitudFilter
           filtro={filtro}
           setFiltro={setFiltro}
+          rango={rangoFechas}
+          setRango={setRangoFechas}
+          estado={estado}
+          setEstado={setEstado}
           child={
             <Button
               size="md"
