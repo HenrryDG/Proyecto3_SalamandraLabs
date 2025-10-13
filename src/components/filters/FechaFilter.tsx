@@ -30,7 +30,7 @@ export default function FechaFilter({ rango, onChange }: Props) {
                 maxDate={new Date()}
                 dateFormat="yyyy-MM-dd"
                 placeholderText="Seleccionar rango de fechas"
-                className="w-full pl-[50px] pr-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-500 focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className="w-full pl-[50px] pr-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             />
             <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3 py-3 text-gray-500 dark:border-gray-700 dark:text-gray-400">
                 <FaCalendarAlt className="size-3" />

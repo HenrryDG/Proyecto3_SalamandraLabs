@@ -14,7 +14,7 @@ export default function BusquedaFilter({ filtro, onChange }: Props) {
                 placeholder="Buscar..."
                 type="text"
                 value={filtro}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onChange(e.target.value.replace(/\s+/g, "") === "" ? "" : e.target.value)}
                 className="pl-[62px] w-full"
             />
             <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
