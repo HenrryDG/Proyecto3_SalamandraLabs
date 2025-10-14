@@ -20,4 +20,5 @@ export interface EmpleadoDTO {
   correo?: string;
   telefono: number;
   rol: string;
+  password?: string;
 }
