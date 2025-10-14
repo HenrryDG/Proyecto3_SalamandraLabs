@@ -8,10 +8,10 @@ import { useToggleEmpleado } from "../../../hooks/empleado/useToggleEmpleado";
 
 // Configuración de campos reutilizable
 import {
-  campos,
-  camposObligatorios,
-  getMaxLength,
-  FormKeys
+  camposEdit,
+  camposObligatoriosEdit,
+  getMaxLengthEdit,
+  EditFormKeys
 } from "../../form/configs/empleadoFormConfig";
 
 interface Props {
@@ -26,44 +26,44 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
   const { toggle, isToggling } = useToggleEmpleado();
 
   // Estado inicial vacío
-  const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
+  const initialForm = Object.fromEntries(camposEdit.map(c => [c.key, ""])) as Record<EditFormKeys, string>;
 
   // Formulario y errores
   const [form, setForm] = useState(initialForm);
   const [errores, setErrores] = useState(initialForm);
 
   // Cargar datos del empleado al abrir el modal
-  useEffect(() => {
-    if (empleado) {
-      const formData: Record<FormKeys, string> = {
-        user: empleado.user,
-        nombre: empleado.nombre,
-        apellido_paterno: empleado.apellido_paterno,
-        apellido_materno: empleado.apellido_materno,
-        correo: empleado.correo ?? "",
-        telefono: String(empleado.telefono),
-        rol: empleado.rol,
-      };
+useEffect(() => {
+  if (empleado) {
+    const formData: Record<EditFormKeys, string> = {
+      nombre: empleado.nombre,
+      apellido_paterno: empleado.apellido_paterno,
+      apellido_materno: empleado.apellido_materno,
+      correo: empleado.correo ?? "",
+      telefono: String(empleado.telefono),
+      rol: empleado.rol,
+      // NO username ni password
+    };
 
-      setForm(formData);
-      setErrores(initialForm);
-    }
-  }, [empleado]);
+    setForm(formData);
+    setErrores(initialForm);
+  }
+}, [empleado]);
 
   // Maneja cambios en los campos del formulario
-  const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (key: EditFormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setForm(prev => ({ ...prev, [key]: value }));
 
     // Validar el campo y actualizar errores
-    const campo = campos.find(c => c.key === key);
+    const campo = camposEdit.find(c => c.key === key);
     setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
   };
 
   // Verifica si hay errores en el formulario
   const hayErrores =
     Object.values(errores).some(e => e !== "") ||
-    camposObligatorios.some(key => form[key] === "");
+    camposObligatoriosEdit.some(key => form[key] === "");
 
   // Maneja el envío del formulario
   const handleSubmit = async () => {
@@ -93,7 +93,7 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
 
         {/* Formulario de edición */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {campos.map(c => (
+          {camposEdit.map(c => (
             <Input
               key={c.key}
               label={c.label}
@@ -109,7 +109,7 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
               inputMode={c.key === "telefono" ? "numeric" : undefined}
 
               // CANTIDAD MÁXIMA DE CARACTERES
-              maxLength={getMaxLength(c.key)}
+              maxLength={getMaxLengthEdit(c.key)}
 
               // SOLO LETRAS
               lettersOnly={

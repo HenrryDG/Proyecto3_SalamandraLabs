@@ -8,12 +8,13 @@ export interface Empleado {
   telefono: number;
   rol: string;
   activo: boolean;
+  password?: string;
   created_at: string; 
   updated_at: string;
 }
 
 export interface EmpleadoDTO {
-  user: string;
+  username: string;
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string;
@@ -21,4 +22,13 @@ export interface EmpleadoDTO {
   telefono: number;
   rol: string;
   password?: string;
+}
+
+export interface EmpleadoEditDTO {
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  correo?: string;
+  telefono: number;
+  rol: string;
 }
