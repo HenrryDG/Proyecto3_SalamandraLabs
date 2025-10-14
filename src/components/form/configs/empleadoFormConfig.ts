@@ -19,14 +19,14 @@ export const campos: {
     type?: string;
     validator: (val: string) => string | null;
 }[] = [
-        { key: "username", label: "Usuario", validator: (v) => validarLongitud(v, 3, 20) },
-        { key: "rol", label: "Rol", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-        { key: "password", label: "Contraseña", type: "password", validator: (v) => validarLongitud(v, 4, 100) || validarTexto(v) },
         { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
         { key: "telefono", label: "Teléfono", validator: validarTelefono },
+        { key: "rol", label: "Rol", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+        { key: "username", label: "Usuario", validator: (v) => validarLongitud(v, 3, 20) },
+        { key: "password", label: "Contraseña", type: "password", validator: (v) => validarLongitud(v, 4, 100) || validarTexto(v) }
     ];
 
 export const maxLengths: Record<FormKeys, number> = {

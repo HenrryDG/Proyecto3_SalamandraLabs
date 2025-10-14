@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useCreateEmpleado } from "../../../hooks/empleado/useCreateEmpleado";
 import Button from "../../ui/button/Button";
 import Input from "../../form/input/InputField";
+import Select from "../../form/Select";
 import { Modal } from "../../ui/modal";
 import { EmpleadoDTO } from "../../../types/empleado";
+import { roles } from "../../../shared";
 
 import {
   campos,
@@ -34,6 +36,13 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
     setForm(prev => ({ ...prev, [key]: value }));
 
     // Validar el campo y actualizar errores
+    const campo = campos.find(c => c.key === key);
+    setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
+  };
+
+  // Maneja cambios en el Select
+  const handleSelectChange = (key: FormKeys) => (value: string) => {
+    setForm(prev => ({ ...prev, [key]: value }));
     const campo = campos.find(c => c.key === key);
     setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
   };
@@ -72,33 +81,49 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {campos.map(c => (
-            <Input
-              key={c.key}
-              label={c.label}
-              type={c.type}
-              value={form[c.key]}
-              onChange={handleInputChange(c.key)}
-              error={!!errores[c.key]}
-              hint={errores[c.key]}
-              min={c.type === "number" ? 0 : undefined}
+          {campos.map(c => {
+            if (c.key === "rol") {
+              return (
+                <div key={c.key} className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 dark:text-white/80 mb-1">
+                    {c.label}
+                  </label>
+                  <Select
+                    options={roles.map(r => ({ value: String(r.value), label: r.label }))}
+                    defaultValue={form.rol}
+                    onChange={handleSelectChange("rol")}
+                    className={`h-11 w-full rounded-lg ${errores["rol"] ? "border-red-500" : "border-gray-300"
+                      }`}
+                  />
+                  
+                  {errores[c.key] && (
+                    <span className="text-xs text-red-500 mt-1">{errores[c.key]}</span>
+                  )}
+                </div>
+              );
+            }
 
-              // SOLO DÍGITOS
-              digitsOnly={c.key === "telefono"}
-              inputMode={c.key === "telefono" ? "numeric" : undefined}
-
-              // MÁXIMO DE CARACTERES
-              maxLength={getMaxLength(c.key)}
-
-              // SOLO LETRAS
-              lettersOnly={
-                c.key === "nombre" ||
-                c.key === "apellido_paterno" ||
-                c.key === "apellido_materno" ||
-                c.key === "rol"
-              }
-            />
-          ))}
+            return (
+              <Input
+                key={c.key}
+                label={c.label}
+                type={c.type}
+                value={form[c.key]}
+                onChange={handleInputChange(c.key)}
+                error={!!errores[c.key]}
+                hint={errores[c.key]}
+                min={c.type === "number" ? 0 : undefined}
+                digitsOnly={c.key === "telefono"}
+                inputMode={c.key === "telefono" ? "numeric" : undefined}
+                maxLength={getMaxLength(c.key)}
+                lettersOnly={
+                  c.key === "nombre" ||
+                  c.key === "apellido_paterno" ||
+                  c.key === "apellido_materno"
+                }
+              />
+            );
+          })}
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
