@@ -6,9 +6,24 @@ import SolicitudFilter from "../../components/filters/solicitud/SolicitudFilter"
 import SolicitudTable from "../../components/tables/solicitud/SolicitudTable";
 import { Pagination } from "../../components/tables/Pagination";
 import { useSolicitudes } from "../../hooks/solicitud/useSolicitudes";
+import { useModal } from "../../hooks/useModal";
+import CreateSolicitudModal from "../../components/modals/solicitud/CreateSolicitudModal";
+import EditSolicitudModal from "../../components/modals/solicitud/EditSolicitudModal";
+import { Solicitud } from "../../types/solicitud";
+import { FaPlus } from "react-icons/fa";
 
 export default function SolicitudesPage() {
-  const { solicitudes, loading, error } = useSolicitudes();
+  const { isOpen, openModal, closeModal } = useModal();
+  const { solicitudes, loading, error, refetch } = useSolicitudes();
+
+  //Edición
+  const [solicitudEdit, setSolicitudEdit] = useState<Solicitud | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const handleEdit = (solicitud: Solicitud) => {
+    setSolicitudEdit(solicitud);
+    setIsEditOpen(true);
+  };
 
   const [filtro, setFiltro] = useState("");
   const [estado, setEstado] = useState("Pendiente");
@@ -53,8 +68,8 @@ export default function SolicitudesPage() {
   const onPrev = () => setPaginaActual((p) => Math.max(p - 1, 1));
   const onNext = () => setPaginaActual((p) => Math.min(p + 1, totalPaginas));
 
-  const handleNuevoDocumento = () => {
-    console.log("Nueva Solicitud");
+  const handleNuevaSolicitud = () => {
+    openModal();
   };
 
   return (
@@ -76,8 +91,9 @@ export default function SolicitudesPage() {
             <Button
               size="md"
               variant="primary"
-              onClick={handleNuevoDocumento}
+              onClick={handleNuevaSolicitud}
             >
+              <FaPlus className="size-3" />
               Nueva Solicitud
             </Button>
           }
@@ -95,12 +111,27 @@ export default function SolicitudesPage() {
             <p className="text-center text-gray-500 dark:text-gray-400">No hay solicitudes que coincidan con el filtro.</p>
           ) : (
             <>
-              <SolicitudTable solicitudes={solicitudesPaginadas} onEdit={(solicitud) => console.log("editando", solicitud)} />
+              <SolicitudTable solicitudes={solicitudesPaginadas} onEdit={handleEdit} />
               <Pagination paginaActual={paginaActual} totalPaginas={totalPaginas} onPrev={onPrev} onNext={onNext} />
             </>
           )}
         </div>
       </div>
+
+      {/* === Modal de creación de solicitud === */}
+      <CreateSolicitudModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        onCreated={refetch}
+      />
+
+      {/* === Modal de edición === */}
+      <EditSolicitudModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        solicitud={solicitudEdit}
+        onUpdated={refetch}
+      />
     </div>
   );
 }
