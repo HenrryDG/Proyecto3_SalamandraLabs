@@ -19,7 +19,7 @@ export const updateSolicitud = async (solicitud: Solicitud): Promise<Solicitud> 
 }
 
 // * === SERVICIO PARA CAMBIAR ESTADO DE UNA SOLICITUD === * //
-export const toggleSolicitud = async (id: number): Promise<{ mensaje: string }> => {
-  const response = await api.patch(`/solicitudes/${id}/`);
-  return response.data.mensaje;
+export const toggleSolicitud = async (id: number, estado: string): Promise<{ mensaje: string; solicitud_id: number; estado: string; fecha_aprobacion: string }> => {
+  const response = await api.patch(`/solicitudes/${id}/`, { estado });
+  return response.data;
 }

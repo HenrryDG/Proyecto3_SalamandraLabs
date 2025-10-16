@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { Modal } from "../../ui/modal";
 import Input from "../../form/input/InputField";
 import TextArea from "../../form/input/TextArea";
-import Radio from "../../form/input/Radio";
 import ClienteSearchSelect from "../../form/ClienteSearchSelect";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
-import { useEmpleado } from "../../../hooks/empleado/useEmpleado";
+import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud";
 
 // Configuración de campos reutilizable
 import {
@@ -26,7 +25,7 @@ interface Props {
 
 export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdated }: Props) {
     const { update, isUpdating } = useUpdateSolicitud();
-    const { empleado } = useEmpleado();
+
 
     // Estado inicial vacío
     const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
@@ -34,10 +33,8 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     // Formulario y errores
     const [form, setForm] = useState(initialForm);
     const [errores, setErrores] = useState(initialForm);
-    const [estado, setEstado] = useState<string>("Pendiente");
+    const { toggle, isToggling } = useToggleSolicitud();
 
-    // Verificar si el usuario es administrador
-    const esAdministrador = empleado?.rol === "Administrador";
 
     // Cargar datos de la solicitud al abrir el modal
     useEffect(() => {
@@ -52,7 +49,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
 
             setForm(formData);
             setErrores(initialForm);
-            setEstado(solicitud.estado);
         }
     }, [solicitud]);
 
@@ -83,12 +79,22 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             proposito: form.proposito,
             plazo_meses: Number(form.plazo_meses),
             observaciones: form.observaciones || null,
-            estado: estado,
         };
 
         // Ejecutar actualización
         const updated = await update(data);
         if (updated) {
+            onClose();
+            onUpdated?.();
+        }
+    };
+
+    // Maneja el cambio de estado de la solicitud
+    const handleCambiarEstado = async (nuevoEstado: "Aprobada" | "Rechazada") => {
+        if (!solicitud) return;
+
+        const ok = await toggle(solicitud.id, nuevoEstado);
+        if (ok) {
             onClose();
             onUpdated?.();
         }
@@ -100,21 +106,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
                     Editar Solicitud de Préstamo
                 </h2>
-
-                {/* Campo de empleado - Solo visible para administradores */}
-                {esAdministrador && (
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Empleado
-                        </label>
-                        <input
-                            type="text"
-                            value={solicitud?.empleado_nombre || ""}
-                            disabled
-                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
-                        />
-                    </div>
-                )}
 
                 {/* Formulario de edición */}
                 {/* Cliente | Monto Solicitado */}
@@ -223,49 +214,62 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     />
                 </div>
 
-                {/* Estado */}
-                <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        Estado de la Solicitud
-                    </label>
-                    <div className="flex flex-wrap items-center gap-6">
-                        <Radio
-                            id="estado-pendiente"
-                            name="estado"
-                            value="Pendiente"
-                            checked={estado === "Pendiente"}
-                            onChange={(value) => setEstado(value)}
-                            label="Pendiente"
-                        />
-                        <Radio
-                            id="estado-aprobada"
-                            name="estado"
-                            value="Aprobada"
-                            checked={estado === "Aprobada"}
-                            onChange={(value) => setEstado(value)}
-                            label="Aprobada"
-                        />
-                        <Radio
-                            id="estado-rechazada"
-                            name="estado"
-                            value="Rechazada"
-                            checked={estado === "Rechazada"}
-                            onChange={(value) => setEstado(value)}
-                            label="Rechazada"
-                        />
+                {/* Acciones de Estado - Solo si está en Pendiente */}
+                {solicitud?.estado === "Pendiente" && (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Cambiar Estado
+                        </label>
+                        <div className="flex gap-3">
+
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Acciones */}
-                <div className="flex justify-end gap-3 pt-4">
-                    <Button variant="outline" onClick={onClose}>Cancelar</Button>
-                    <Button
-                        variant="primary"
-                        onClick={handleSubmit}
-                        disabled={isUpdating || hayErrores}
-                    >
-                        {isUpdating ? "Actualizando..." : "Guardar Cambios"}
-                    </Button>
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4">
+                    {solicitud?.estado === "Pendiente" && (
+                        <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
+                            <div className="w-full sm:w-auto">
+                                <Button
+                                    variant="success"
+                                    onClick={() => handleCambiarEstado("Aprobada")}
+                                    disabled={isToggling}
+                                    className="w-full"
+                                >
+                                    {isToggling ? "Procesando..." : "Aprobar"}
+                                </Button>
+                            </div>
+                            <div className="w-full sm:w-auto">
+                                <Button
+                                    variant="error"
+                                    onClick={() => handleCambiarEstado("Rechazada")}
+                                    disabled={isToggling}
+                                    className="w-full"
+                                >
+                                    {isToggling ? "Procesando..." : "Rechazar"}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
+                        <div className="w-full sm:w-auto">
+                            <Button variant="outline" onClick={onClose} className="w-full">
+                                Cancelar
+                            </Button>
+                        </div>
+                        <div className="w-full sm:w-auto">
+                            <Button
+                                variant="primary"
+                                onClick={handleSubmit}
+                                disabled={isUpdating || hayErrores || isToggling}
+                                className="w-full"
+                            >
+                                {isUpdating ? "Actualizando..." : "Guardar Cambios"}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </Modal>
