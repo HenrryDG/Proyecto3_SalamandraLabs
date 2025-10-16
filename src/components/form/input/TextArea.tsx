@@ -9,6 +9,7 @@ interface TextareaProps {
   disabled?: boolean; // Disabled state
   error?: boolean; // Error state
   hint?: string; // Hint text to display
+  lettersOnly?: boolean; // Filtra solo letras (incluye acentos y espacios)
 }
 
 const TextArea: React.FC<TextareaProps> = ({
@@ -20,12 +21,82 @@ const TextArea: React.FC<TextareaProps> = ({
   disabled = false, // Disabled state
   error = false, // Error state
   hint = "", // Default hint text
+  lettersOnly = false, // Default letters only
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (onChange) {
       onChange(e.target.value);
     }
   };
+
+  // Prevención de entrada antes de insertar (lettersOnly)
+  const handleBeforeInput: React.FormEventHandler<HTMLTextAreaElement> | undefined =
+    lettersOnly
+      ? (e) => {
+        const be = e as unknown as InputEvent;
+        const data = (be && (be as any).data) as string | null;
+        if (!data) return;
+        // Permite letras unicode y espacio
+        const lettersRegex = /^[\p{L} ]+$/u;
+        if (!lettersRegex.test(data)) {
+          e.preventDefault();
+        }
+      }
+      : undefined;
+
+  // Filtrado de teclas
+  const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> | undefined =
+    lettersOnly
+      ? (e) => {
+        const allowedKeys = [
+          "Backspace",
+          "Delete",
+          "Tab",
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          "ArrowDown",
+          "Home",
+          "End",
+          "Enter",
+          " ", // espacio
+        ];
+        if (allowedKeys.includes(e.key)) return;
+        // Permite letras unicode (una sola tecla)
+        const singleLetter = /^\p{L}$/u;
+        if (!singleLetter.test(e.key)) {
+          e.preventDefault();
+        }
+      }
+      : undefined;
+
+  // Validación de pegado: aplica filtro
+  const handlePaste: React.ClipboardEventHandler<HTMLTextAreaElement> | undefined =
+    lettersOnly
+      ? (e) => {
+        const text = e.clipboardData.getData("text");
+        // Mantener solo letras unicode y espacios
+        const filtered = text.replace(/[^\p{L} ]+/gu, "");
+        if (filtered.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        // Si el texto filtrado es diferente al original, prevenir el pegado
+        if (filtered !== text) {
+          e.preventDefault();
+          // Insertar solo el texto filtrado
+          const textarea = e.target as HTMLTextAreaElement;
+          const start = textarea.selectionStart ?? textarea.value.length;
+          const end = textarea.selectionEnd ?? textarea.value.length;
+          const before = textarea.value.slice(0, start);
+          const after = textarea.value.slice(end);
+          const newValue = before + filtered + after;
+          if (onChange) {
+            onChange(newValue);
+          }
+        }
+      }
+      : undefined;
 
   let textareaClasses = `w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden ${className} `;
 
@@ -46,12 +117,14 @@ const TextArea: React.FC<TextareaProps> = ({
         onChange={handleChange}
         disabled={disabled}
         className={textareaClasses}
+        onBeforeInput={handleBeforeInput}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
       />
       {hint && (
         <p
-          className={`mt-2 text-sm ${
-            error ? "text-error-500" : "text-gray-500 dark:text-gray-400"
-          }`}
+          className={`mt-2 text-sm ${error ? "text-error-500" : "text-gray-500 dark:text-gray-400"
+            }`}
         >
           {hint}
         </p>

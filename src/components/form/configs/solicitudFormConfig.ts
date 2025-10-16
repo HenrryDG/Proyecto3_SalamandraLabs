@@ -1,7 +1,9 @@
 import {
     validarTexto,
     validarLongitud,
-    validarTextoMinimo
+    validarTextoMinimo,
+    validarMontoSolicitado,
+    validarPlazoMeses
 } from "../../utils/validaciones";
 
 export interface SolicitudDTO {
@@ -21,18 +23,18 @@ export const campos: {
     validator: (val: string) => string | null;
 }[] = [
         { key: "cliente", label: "Cliente", validator: (v) => !v ? "Campo obligatorio" : null },
-        { key: "monto_solicitado", label: "Monto Solicitado", validator: (v) => !v ? "Campo obligatorio" : null },
+        { key: "monto_solicitado", label: "Monto Solicitado", validator: validarMontoSolicitado },
         { key: "proposito", label: "Propósito", validator: (v) => validarTextoMinimo(v, 5) || validarTexto(v) },
-        { key: "plazo_meses", label: "Plazo (meses)", type: "number", validator: (v) => !v ? "Campo obligatorio" : null },
-        { key: "observaciones", label: "Observaciones", validator: (v) => !v ? null : validarLongitud(v, 0, 500) },
+        { key: "plazo_meses", label: "Plazo (meses)", type: "number", validator: validarPlazoMeses },
+        { key: "observaciones", label: "Observaciones", validator: (v) => !v ? null : validarLongitud(v, 0, 1000) },
     ];
 
 export const maxLengths: Record<FormKeys, number> = {
     cliente: 10,
     monto_solicitado: 20,
-    proposito: 200,
+    proposito: 500,
     plazo_meses: 3,
-    observaciones: 500,
+    observaciones: 1000,
 };
 
 export const getMaxLength = (key: FormKeys) => maxLengths[key] || undefined;

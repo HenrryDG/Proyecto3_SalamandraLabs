@@ -136,15 +136,20 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     </div>
                     <Input
                         label="Monto Solicitado"
+                        type="text"
                         value={form.monto_solicitado}
                         onChange={handleInputChange("monto_solicitado")}
                         error={!!errores.monto_solicitado}
                         hint={errores.monto_solicitado}
-                        maxLength={getMaxLength("monto_solicitado")}
+                        inputMode="decimal"
+                        decimal={true}
+                        maxIntegerDigits={6}
+                        maxDecimalDigits={2}
+                        placeholder="0.00"
                     />
                 </div>
 
-                {/* Proposito | Plazo */}
+                {/* Proposito */}
                 <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-4">
                     <Input
                         label="Propósito"
@@ -163,15 +168,15 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     <div className="flex-1">
                         <Input
                             label="Plazo (meses)"
-                            type="number"
+                            type="text"
                             value={form.plazo_meses}
                             onChange={handleInputChange("plazo_meses")}
                             error={!!errores.plazo_meses}
                             hint={errores.plazo_meses}
-                            min={0}
-                            digitsOnly={true}
                             inputMode="numeric"
-                            maxLength={getMaxLength("plazo_meses")}
+                            digitsOnly={true}
+                            maxLength={2}
+                            placeholder="0"
                         />
                     </div>
                     <div className="flex-1 space-y-1">
@@ -214,6 +219,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         error={!!errores.observaciones}
                         hint={errores.observaciones}
                         placeholder="Escriba las observaciones aquí..."
+                        lettersOnly={true}
                     />
                 </div>
 
