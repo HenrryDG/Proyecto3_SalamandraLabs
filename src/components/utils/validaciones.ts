@@ -46,3 +46,19 @@ export const validarCorreo = (correo: string): string | null => {
   if (!emailRegex.test(correo)) return "El correo no es válido";
   return null;
 };
+
+/* SOLICITUDES */
+export const validarMontoSolicitado = (monto: string): string | null => {
+  if (monto.trim() === "") return "El monto solicitado es obligatorio";
+  const num = Number(monto);
+  if (isNaN(num) || num <= 99) return "El monto solicitado debe ser mayor que 99";
+  return null;
+};
+
+export const validarPlazoMeses = (plazo: string): string | null => {
+  if (plazo.trim() === "") return "El plazo es obligatorio";
+  const num = Number(plazo);
+  if (isNaN(num) || num <= 0) return "El plazo debe ser mayor que 0";
+  if (num > 99) return "El plazo no puede ser mayor a 99 meses";
+  return null;
+};
