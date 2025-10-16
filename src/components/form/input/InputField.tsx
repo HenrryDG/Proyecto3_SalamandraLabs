@@ -323,6 +323,25 @@ const Input: FC<InputProps> = ({
             }
           }
           : undefined;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Eliminar espacios iniciales
+    value = value.replace(/^\s+/, "");
+
+    // Evitar que el campo quede con solo espacios
+    if (value.trim() === "") value = "";
+
+    // Reemitir el evento con el valor limpio
+    if (onChange) {
+      const customEvent = {
+        ...e,
+        target: { ...e.target, value },
+        currentTarget: { ...e.target, value },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(customEvent);
+    }
+  };
 
   return (
     <div className="relative w-full flex flex-col gap-1">
@@ -341,7 +360,7 @@ const Input: FC<InputProps> = ({
         name={name}
         placeholder={placeholder}
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         min={min}
         max={max}
         step={step}
