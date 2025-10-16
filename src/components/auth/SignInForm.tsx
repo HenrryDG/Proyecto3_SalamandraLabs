@@ -10,15 +10,19 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { loginUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
     try {
       await loginUser({ username, password });
     } catch (err: any) {
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -53,7 +57,10 @@ export default function SignInForm() {
                   </Label>
                   <Input
                     value={username}
-                    onChange={(e) => setUser(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const v = e.target.value.replace(/\s/g, "");
+                      setUser(v);
+                    }}
                     required
                   />
                 </div>
@@ -65,7 +72,10 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const v = e.target.value.replace(/\s/g, "");
+                        setPassword(v);
+                      }}
                       required
                     />
                     <span
@@ -82,11 +92,12 @@ export default function SignInForm() {
                 </div>
                 <div>
                   <Button
+                    type="submit"
                     className="w-full"
                     size="sm"
-                    onClick={handleSubmit}
+                    disabled={isSubmitting ||  username === "" || password === ""}
                   >
-                    Ingresar
+                    {isSubmitting ? "Ingresando..." : "Ingresar"}
                   </Button>
                 </div>
               </div>

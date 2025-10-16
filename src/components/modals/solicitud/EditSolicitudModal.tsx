@@ -187,7 +187,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         </label>
                         <input
                             type="text"
-                            value={solicitud?.fecha_aprobacion || "No aprobada"}
+                            value={solicitud?.fecha_aprobacion || "Sin resolver"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
@@ -213,18 +213,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         lettersOnly={true}
                     />
                 </div>
-
-                {/* Acciones de Estado - Solo si está en Pendiente */}
-                {solicitud?.estado === "Pendiente" && (
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                            Cambiar Estado
-                        </label>
-                        <div className="flex gap-3">
-
-                        </div>
-                    </div>
-                )}
 
                 {/* Acciones */}
                 <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4">
