@@ -47,6 +47,39 @@ export const validarCorreo = (correo: string): string | null => {
   return null;
 };
 
+// Valida que el correo pertenezca a proveedores permitidos (por defecto: gmail, hotmail, yahoo)
+export const validarCorreoProveedor = (correo: string, allowedProviders?: string[]): string | null => {
+  if (correo.trim() === "") return "El correo es obligatorio";
+
+  const emailMatch = correo.match(/^[^\s@]+@([^\s@]+)$/);
+  if (!emailMatch) return "El correo no es válido";
+
+  const domain = emailMatch[1].toLowerCase();
+  const defaults = ["gmail.com", "hotmail.com", "yahoo.com"];
+  const providers = (allowedProviders && allowedProviders.length > 0) ? allowedProviders.map(p => p.toLowerCase()) : defaults;
+
+  if (!providers.includes(domain)) return `El correo debe ser de: ${providers.join(', ')}`;
+  return null;
+};
+
+// Valida que la contraseña sea segura: longitud mínima, mayúscula, minúscula, número y carácter especial
+export const validarContrasena = (password: string, min: number = 8): string | null => {
+  if (password.trim() === "") return "La contraseña es obligatoria";
+  if (password.length < min) return `La contraseña debe tener al menos ${min} caracteres`;
+
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasDigit = /[0-9]/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-\\[\]\/~`+=;:]/.test(password);
+
+  if (!hasUpper) return "La contraseña debe contener al menos una letra mayúscula";
+  if (!hasLower) return "La contraseña debe contener al menos una letra minúscula";
+  if (!hasDigit) return "La contraseña debe contener al menos un número";
+  if (!hasSpecial) return "La contraseña debe contener al menos un carácter especial";
+
+  return null;
+};
+
 /* SOLICITUDES */
 export const validarMontoSolicitado = (monto: string): string | null => {
   if (monto.trim() === "") return "El monto solicitado es obligatorio";
