@@ -103,6 +103,56 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
               );
             }
 
+            // Mostrar helper de requisitos para contraseña
+            if (c.key === "password") {
+              const pwd = form.password || "";
+              const reqMinLen = pwd.length >= 8;
+              const reqUpper = /[A-Z]/.test(pwd);
+              const reqLower = /[a-z]/.test(pwd);
+              const reqDigit = /[0-9]/.test(pwd);
+              const reqSpecial = /[!@#$%^&*(),.?":{}|<>_\-\\[\]\/~`+=;:]/.test(pwd);
+
+              return (
+                <div key={c.key} className="w-full">
+                  <Input
+                    label={c.label}
+                    type={c.type}
+                    value={form[c.key]}
+                    onChange={handleInputChange(c.key)}
+                    error={!!errores[c.key]}
+                    hint={errores[c.key]}
+                    maxLength={getMaxLength(c.key)}
+                  />
+
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                    <p className="mb-1 font-medium text-sm text-gray-700 dark:text-gray-200">Requisitos de la contraseña:</p>
+                    <ul className="space-y-1">
+                      <li className={`${reqMinLen ? 'text-success-500' : 'text-gray-400'}`}>
+                        <span className="inline-block w-4">{reqMinLen ? '✓' : '•'}</span>
+                        Mínimo 8 caracteres
+                      </li>
+                      <li className={`${reqUpper ? 'text-success-500' : 'text-gray-400'}`}>
+                        <span className="inline-block w-4">{reqUpper ? '✓' : '•'}</span>
+                        Al menos una letra mayúscula
+                      </li>
+                      <li className={`${reqLower ? 'text-success-500' : 'text-gray-400'}`}>
+                        <span className="inline-block w-4">{reqLower ? '✓' : '•'}</span>
+                        Al menos una letra minúscula
+                      </li>
+                      <li className={`${reqDigit ? 'text-success-500' : 'text-gray-400'}`}>
+                        <span className="inline-block w-4">{reqDigit ? '✓' : '•'}</span>
+                        Al menos un número
+                      </li>
+                      <li className={`${reqSpecial ? 'text-success-500' : 'text-gray-400'}`}>
+                        <span className="inline-block w-4">{reqSpecial ? '✓' : '•'}</span>
+                        Al menos un carácter especial (ej. !@#$%)
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Input
                 key={c.key}
