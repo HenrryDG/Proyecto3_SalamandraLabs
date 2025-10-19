@@ -2,7 +2,7 @@ import {
     validarTexto,
     validarTelefono,
     validarCorreo,
-    validarCorreoProveedor,
+    validarCorreoExtension,
     validarContrasena,
     validarLongitud,
     validarTextoMinimo
@@ -24,7 +24,7 @@ export const campos: {
         { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-        { key: "correo", label: "Correo", type: "email", validator: (v) => validarLongitud(v, 1, 50) || validarCorreo(v) || validarCorreoProveedor(v) },
+        { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) || validarCorreoExtension(v) },
         { key: "telefono", label: "Teléfono", validator: validarTelefono },
         { key: "rol", label: "Rol", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
         { key: "username", label: "Usuario", validator: (v) => validarLongitud(v, 3, 20) },
@@ -45,7 +45,9 @@ export const maxLengths: Record<FormKeys, number> = {
 export const getMaxLength = (key: FormKeys) => maxLengths[key] || undefined;
 
 // Campos obligatorios (excepto correo)
-export const camposObligatorios: FormKeys[] = campos.map(c => c.key);
+export const camposObligatorios: FormKeys[] = campos
+    .filter(c => c.key !== "correo")
+    .map(c => c.key);
 
 
 // ================= Editar Empleado =================

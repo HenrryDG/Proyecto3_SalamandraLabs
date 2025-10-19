@@ -5,7 +5,8 @@ import {
   validarCorreo,
   validarIngreso,
   validarLongitud,
-  validarTextoMinimo
+  validarTextoMinimo,
+  validarCorreoExtension
 } from "../../utils/validaciones";
 
 import { ClienteDTO } from "../../../types/cliente";
@@ -26,7 +27,7 @@ export const campos: {
   { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
   { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
   { key: "direccion", label: "Dirección", validator: (v) => validarLongitud(v, 1, 255) },
-  { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) },
+  { key: "correo", label: "Correo", type: "email", validator: (v) => !v ? null : validarLongitud(v, 1, 50) || validarCorreo(v) || validarCorreoExtension(v) },
   { key: "telefono", label: "Teléfono", validator: validarTelefono },
 ];
 

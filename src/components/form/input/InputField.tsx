@@ -161,10 +161,9 @@ const Input: FC<InputProps> = ({
             "Home",
             "End",
             "Enter",
-            " ", // espacio
+            " ", // espacio permitido para nombres
           ];
           if (allowedKeys.includes(e.key)) return;
-          // Permite letras unicode (una sola tecla)
           const singleLetter = /^\p{L}$/u;
           if (!singleLetter.test(e.key)) {
             e.preventDefault();
@@ -188,12 +187,10 @@ const Input: FC<InputProps> = ({
               e.preventDefault();
               return;
             }
-            // bloquear segundo punto
             if (e.key === "." && input.value.includes(".")) {
               e.preventDefault();
               return;
             }
-            // validar siguiente valor (relleno simple)
             const start = input.selectionStart ?? input.value.length;
             const end = input.selectionEnd ?? input.value.length;
             const next = nextValueFromInsertion(input.value, e.key, start, end);
@@ -201,45 +198,28 @@ const Input: FC<InputProps> = ({
               e.preventDefault();
             }
           }
-          : undefined;
+          : (e) => {
+            //  Bloquear espacios si es campo de tipo email
+            if (type === "email" && e.key === " ") {
+              e.preventDefault();
+            }
+          };
+
 
   // Validación de pegado: aplica filtro y respeta maxLength / formato decimal
   const handlePaste: React.ClipboardEventHandler<HTMLInputElement> | undefined =
-    digitsOnly
+    type === "email"
       ? (e) => {
         const text = e.clipboardData.getData("text");
-        const filtered = text.replace(/\D+/g, "");
-        if (filtered.length === 0) {
+        // 🚫 Bloquear pegado si contiene espacios
+        if (/\s/.test(text)) {
           e.preventDefault();
-          return;
         }
-        if (maxLength) {
-          const current = (e.target as HTMLInputElement).value;
-          const selectionStart = (e.target as HTMLInputElement).selectionStart ?? current.length;
-          const selectionEnd = (e.target as HTMLInputElement).selectionEnd ?? current.length;
-          const newLen = current.length - (selectionEnd - selectionStart) + filtered.length;
-          if (newLen > maxLength) {
-            e.preventDefault();
-            const room = maxLength - (current.length - (selectionEnd - selectionStart));
-            const toInsert = room > 0 ? filtered.slice(0, room) : "";
-            const next = current.slice(0, selectionStart) + toInsert + current.slice(selectionEnd);
-            (e.target as HTMLInputElement).value = next;
-            if (onChange) {
-              const evt = {
-                ...e,
-                target: e.target as HTMLInputElement,
-                currentTarget: e.target as HTMLInputElement,
-              } as unknown as React.ChangeEvent<HTMLInputElement>;
-              onChange(evt);
-            }
-          }
-        }
-      }
-      : lettersOnly
-        ? (e) => {
+      } :
+      digitsOnly
+        ? (e) => { 
           const text = e.clipboardData.getData("text");
-          // Mantener solo letras unicode y espacios
-          const filtered = text.replace(/[^\p{L} ]+/gu, "");
+          const filtered = text.replace(/\D+/g, "");
           if (filtered.length === 0) {
             e.preventDefault();
             return;
@@ -266,63 +246,94 @@ const Input: FC<InputProps> = ({
             }
           }
         }
-        : decimal
+        : lettersOnly
           ? (e) => {
-            const input = e.target as HTMLInputElement;
             const text = e.clipboardData.getData("text");
-            // Mantener dígitos y el primer punto
-            const onlyValid = text.replace(/[^0-9.]+/g, "");
-            const firstDotIndex = onlyValid.indexOf(".");
-            let intPart = onlyValid;
-            let decPart = "";
-            if (firstDotIndex !== -1) {
-              intPart = onlyValid.slice(0, firstDotIndex);
-              // remover puntos restantes
-              decPart = onlyValid.slice(firstDotIndex + 1).replace(/\./g, "");
-            }
-            intPart = intPart.slice(0, maxIntegerDigits);
-            decPart = decPart.slice(0, maxDecimalDigits);
-            const pasteValue = firstDotIndex !== -1 ? `${intPart}.${decPart}` : intPart;
-
-            const current = input.value;
-            const selectionStart = input.selectionStart ?? current.length;
-            const selectionEnd = input.selectionEnd ?? current.length;
-            const next = nextValueFromInsertion(current, pasteValue, selectionStart, selectionEnd);
-
-            if (!isValidDecimalValue(next)) {
+            // Mantener solo letras unicode y espacios
+            const filtered = text.replace(/[^\p{L} ]+/gu, "");
+            if (filtered.length === 0) {
               e.preventDefault();
-              const truncated = (() => {
-                // construir valor truncado válido
-                const before = current.slice(0, selectionStart);
-                const after = current.slice(selectionEnd);
-                // intentar insertar de forma incremental
-                let candidate = before + pasteValue + after;
-                // normalizar múltiples puntos
-                const idx = candidate.indexOf(".");
-                if (idx !== -1) {
-                  const left = candidate.slice(0, idx).replace(/\./g, "").slice(0, maxIntegerDigits);
-                  const right = candidate.slice(idx + 1).replace(/\./g, "").slice(0, maxDecimalDigits);
-                  candidate = `${left}${right.length > 0 ? "." + right : "." + right}`;
-                } else {
-                  candidate = candidate.replace(/\./g, "").slice(0, maxIntegerDigits);
-                }
-                // como fallback, asegurar regex
-                const match = candidate.match(new RegExp(`^\\d{0,${maxIntegerDigits}}(\\.\\d{0,${maxDecimalDigits}})?`));
-                return match ? match[0] : "";
-              })();
-              (e.target as HTMLInputElement).value = truncated;
-              if (onChange) {
-                const evt = {
-                  ...e,
-                  target: e.target as HTMLInputElement,
-                  currentTarget: e.target as HTMLInputElement,
-                } as unknown as React.ChangeEvent<HTMLInputElement>;
-                onChange(evt);
-              }
               return;
             }
+            if (maxLength) {
+              const current = (e.target as HTMLInputElement).value;
+              const selectionStart = (e.target as HTMLInputElement).selectionStart ?? current.length;
+              const selectionEnd = (e.target as HTMLInputElement).selectionEnd ?? current.length;
+              const newLen = current.length - (selectionEnd - selectionStart) + filtered.length;
+              if (newLen > maxLength) {
+                e.preventDefault();
+                const room = maxLength - (current.length - (selectionEnd - selectionStart));
+                const toInsert = room > 0 ? filtered.slice(0, room) : "";
+                const next = current.slice(0, selectionStart) + toInsert + current.slice(selectionEnd);
+                (e.target as HTMLInputElement).value = next;
+                if (onChange) {
+                  const evt = {
+                    ...e,
+                    target: e.target as HTMLInputElement,
+                    currentTarget: e.target as HTMLInputElement,
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  onChange(evt);
+                }
+              }
+            }
           }
-          : undefined;
+          : decimal
+            ? (e) => {
+              const input = e.target as HTMLInputElement;
+              const text = e.clipboardData.getData("text");
+              // Mantener dígitos y el primer punto
+              const onlyValid = text.replace(/[^0-9.]+/g, "");
+              const firstDotIndex = onlyValid.indexOf(".");
+              let intPart = onlyValid;
+              let decPart = "";
+              if (firstDotIndex !== -1) {
+                intPart = onlyValid.slice(0, firstDotIndex);
+                // remover puntos restantes
+                decPart = onlyValid.slice(firstDotIndex + 1).replace(/\./g, "");
+              }
+              intPart = intPart.slice(0, maxIntegerDigits);
+              decPart = decPart.slice(0, maxDecimalDigits);
+              const pasteValue = firstDotIndex !== -1 ? `${intPart}.${decPart}` : intPart;
+
+              const current = input.value;
+              const selectionStart = input.selectionStart ?? current.length;
+              const selectionEnd = input.selectionEnd ?? current.length;
+              const next = nextValueFromInsertion(current, pasteValue, selectionStart, selectionEnd);
+
+              if (!isValidDecimalValue(next)) {
+                e.preventDefault();
+                const truncated = (() => {
+                  // construir valor truncado válido
+                  const before = current.slice(0, selectionStart);
+                  const after = current.slice(selectionEnd);
+                  // intentar insertar de forma incremental
+                  let candidate = before + pasteValue + after;
+                  // normalizar múltiples puntos
+                  const idx = candidate.indexOf(".");
+                  if (idx !== -1) {
+                    const left = candidate.slice(0, idx).replace(/\./g, "").slice(0, maxIntegerDigits);
+                    const right = candidate.slice(idx + 1).replace(/\./g, "").slice(0, maxDecimalDigits);
+                    candidate = `${left}${right.length > 0 ? "." + right : "." + right}`;
+                  } else {
+                    candidate = candidate.replace(/\./g, "").slice(0, maxIntegerDigits);
+                  }
+                  // como fallback, asegurar regex
+                  const match = candidate.match(new RegExp(`^\\d{0,${maxIntegerDigits}}(\\.\\d{0,${maxDecimalDigits}})?`));
+                  return match ? match[0] : "";
+                })();
+                (e.target as HTMLInputElement).value = truncated;
+                if (onChange) {
+                  const evt = {
+                    ...e,
+                    target: e.target as HTMLInputElement,
+                    currentTarget: e.target as HTMLInputElement,
+                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  onChange(evt);
+                }
+                return;
+              }
+            }
+            : undefined;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 

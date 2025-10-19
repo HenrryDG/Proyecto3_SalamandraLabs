@@ -95,13 +95,33 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
                     className={`h-11 w-full rounded-lg ${errores["rol"] ? "border-red-500" : "border-gray-300"
                       }`}
                   />
-                  
+
                   {errores[c.key] && (
                     <span className="text-xs text-red-500 mt-1">{errores[c.key]}</span>
                   )}
                 </div>
               );
             }
+
+            if (c.key === "username") {
+              return (
+                <div key={c.key} className="w-full">
+                  <Input
+                    label={c.label}
+                    type={c.type}
+                    value={form[c.key]}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const v = e.target.value.replace(/\s/g, ""); // eliminar espacios en cualquier parte
+                      handleInputChange(c.key)({ target: { value: v } } as any); // llamar tu handleInputChange
+                    }}
+                    error={!!errores[c.key]}
+                    hint={errores[c.key]}
+                    maxLength={getMaxLength(c.key)}
+                  />
+                </div>
+              );
+            }
+
 
             // Mostrar helper de requisitos para contraseña
             if (c.key === "password") {
@@ -113,38 +133,44 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
               const reqSpecial = /[!@#$%^&*(),.?":{}|<>_\-\\[\]\/~`+=;:]/.test(pwd);
 
               return (
-                <div key={c.key} className="w-full">
-                  <Input
-                    label={c.label}
-                    type={c.type}
-                    value={form[c.key]}
-                    onChange={handleInputChange(c.key)}
-                    error={!!errores[c.key]}
-                    hint={errores[c.key]}
-                    maxLength={getMaxLength(c.key)}
-                  />
+                <div key={c.key} className="w-full relative flex flex-col">
+                  {/* Contenedor del input + icono */}
+                  <div className="relative w-full">
+                    <Input
+                      label={c.label}
+                      value={form[c.key]}
+                      onChange={handleInputChange(c.key)}
+                      error={!!errores[c.key]}
+                      hint={errores[c.key]}
+                      maxLength={getMaxLength(c.key)}
+                      className="pr-10" // Padding a la derecha para que el ojo no se superponga
+                    />
+                  </div>
 
+                  {/* Requisitos de la contraseña */}
                   <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                    <p className="mb-1 font-medium text-sm text-gray-700 dark:text-gray-200">Requisitos de la contraseña:</p>
+                    <p className="mb-1 font-medium text-sm text-gray-700 dark:text-gray-200">
+                      Requisitos de la contraseña:
+                    </p>
                     <ul className="space-y-1">
-                      <li className={`${reqMinLen ? 'text-success-500' : 'text-gray-400'}`}>
-                        <span className="inline-block w-4">{reqMinLen ? '✓' : '•'}</span>
+                      <li className={`${reqMinLen ? "text-success-500" : "text-gray-400"}`}>
+                        <span className="inline-block w-4">{reqMinLen ? "✓" : "•"}</span>
                         Mínimo 8 caracteres
                       </li>
-                      <li className={`${reqUpper ? 'text-success-500' : 'text-gray-400'}`}>
-                        <span className="inline-block w-4">{reqUpper ? '✓' : '•'}</span>
+                      <li className={`${reqUpper ? "text-success-500" : "text-gray-400"}`}>
+                        <span className="inline-block w-4">{reqUpper ? "✓" : "•"}</span>
                         Al menos una letra mayúscula
                       </li>
-                      <li className={`${reqLower ? 'text-success-500' : 'text-gray-400'}`}>
-                        <span className="inline-block w-4">{reqLower ? '✓' : '•'}</span>
+                      <li className={`${reqLower ? "text-success-500" : "text-gray-400"}`}>
+                        <span className="inline-block w-4">{reqLower ? "✓" : "•"}</span>
                         Al menos una letra minúscula
                       </li>
-                      <li className={`${reqDigit ? 'text-success-500' : 'text-gray-400'}`}>
-                        <span className="inline-block w-4">{reqDigit ? '✓' : '•'}</span>
+                      <li className={`${reqDigit ? "text-success-500" : "text-gray-400"}`}>
+                        <span className="inline-block w-4">{reqDigit ? "✓" : "•"}</span>
                         Al menos un número
                       </li>
-                      <li className={`${reqSpecial ? 'text-success-500' : 'text-gray-400'}`}>
-                        <span className="inline-block w-4">{reqSpecial ? '✓' : '•'}</span>
+                      <li className={`${reqSpecial ? "text-success-500" : "text-gray-400"}`}>
+                        <span className="inline-block w-4">{reqSpecial ? "✓" : "•"}</span>
                         Al menos un carácter especial (ej. !@#$%)
                       </li>
                     </ul>

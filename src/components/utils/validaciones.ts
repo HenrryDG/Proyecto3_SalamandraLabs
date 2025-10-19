@@ -36,31 +36,37 @@ export const validarIngreso = (ingreso: string): string | null => {
 export const validarCarnet = (carnet: string, min: number): string | null => {
   if (carnet.trim() === "") return "El carnet es obligatorio";
   if (carnet.length < min) return `El carnet debe tener al menos ${min} caracteres`;
-  if (!/^[a-zA-Z0-9]+$/.test(carnet)) return "El carnet debe contener solo letras y números";
+  // Debe ser solo números, con a lo sumo una letra al final
+  if (!/^\d+[A-Za-z]?$/.test(carnet)) return "El carnet debe contener solo números y, opcionalmente, una única letra al final";
   return null;
 };
 
 export const validarCorreo = (correo: string): string | null => {
-  if (correo.trim() === "") return "El correo es obligatorio";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(correo)) return "El correo no es válido";
   return null;
 };
 
 // Valida que el correo pertenezca a proveedores permitidos (por defecto: gmail, hotmail, yahoo)
-export const validarCorreoProveedor = (correo: string, allowedProviders?: string[]): string | null => {
-  if (correo.trim() === "") return "El correo es obligatorio";
-
-  const emailMatch = correo.match(/^[^\s@]+@([^\s@]+)$/);
+export const validarCorreoExtension = (correo: string, allowedExtensions?: string[]): string | null => {
+  const emailMatch = correo.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
   if (!emailMatch) return "El correo no es válido";
 
-  const domain = emailMatch[1].toLowerCase();
-  const defaults = ["gmail.com", "hotmail.com", "yahoo.com"];
-  const providers = (allowedProviders && allowedProviders.length > 0) ? allowedProviders.map(p => p.toLowerCase()) : defaults;
+  const domain = correo.split("@")[1].toLowerCase();
+  const extension = domain.split(".").pop() ?? ""; // obtiene lo que va después del último punto
 
-  if (!providers.includes(domain)) return `El correo debe ser de: ${providers.join(', ')}`;
+  const defaults = ["com", "net", "org", "edu", "bo", "es"];
+  const extensions = (allowedExtensions && allowedExtensions.length > 0)
+    ? allowedExtensions.map(ext => ext.toLowerCase())
+    : defaults;
+
+  if (!extensions.includes(extension)) {
+    return `El correo debe tener una extensión válida (${extensions.join(", ")})`;
+  }
+
   return null;
 };
+
 
 // Valida que la contraseña sea segura: longitud mínima, mayúscula, minúscula, número y carácter especial
 export const validarContrasena = (password: string, min: number = 8): string | null => {
