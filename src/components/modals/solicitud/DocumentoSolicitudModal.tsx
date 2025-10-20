@@ -2,7 +2,10 @@ import { Modal } from "../../ui/modal";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
 import { useDocumentos } from "../../../hooks/documento/useDocumentos";
+import { useUploadCarnet } from "../../../hooks/documento/useUploadCarnet";
+import { useUploadFactura } from "../../../hooks/documento/useUploadFactura";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface Props {
   isOpen: boolean;
@@ -13,42 +16,51 @@ interface Props {
 export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }: Props) {
   if (!solicitud) return null;
 
-  const { documentos, loading, error } = useDocumentos(solicitud.id);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { documentos, loading, error, refetch } = useDocumentos(solicitud.id);
 
-  // Tipos válidos
+  const { uploading: uploadingCarnet, upload: uploadCarnet } = useUploadCarnet(solicitud.id);
+  const { uploading: uploadingFactura, upload: uploadFactura } = useUploadFactura(solicitud.id);
+
   const tiposFactura = ["Factura de agua", "Factura de luz", "Factura de gas"];
   const tipoCarnet = "Fotocopia de carnet";
 
-  // Filtrar documentos de la solicitud actual
-  const documentosSolicitud = documentos.filter(
-    (doc) => doc.solicitud === solicitud.id
-  );
+  const documentosSolicitud = documentos.filter(doc => doc.solicitud === solicitud.id);
+  const tieneFactura = documentosSolicitud.some(doc => tiposFactura.includes(doc.tipo_documento));
+  const tieneCarnet = documentosSolicitud.some(doc => doc.tipo_documento === tipoCarnet);
 
-  // Ver si tiene al menos una factura válida
-  const tieneFactura = documentosSolicitud.some((doc) =>
-    tiposFactura.includes(doc.tipo_documento)
-  );
-
-  // Ver si tiene carnet
-  const tieneCarnet = documentosSolicitud.some(
-    (doc) => doc.tipo_documento === tipoCarnet
-  );
-
-  // Determinar qué documentos faltan
   const tiposFaltantes: string[] = [];
   if (!tieneFactura) tiposFaltantes.push("Factura de agua / luz / gas");
   if (!tieneCarnet) tiposFaltantes.push(tipoCarnet);
 
-  const handleFileUpload = (tipoDocumento: string) => {
-    if (!selectedFile) return alert("Selecciona un archivo primero.");
+  const [archivos, setArchivos] = useState<{ [key: string]: File | undefined }>({});
 
-    // Aquí puedes integrar tu lógica de subida (por ejemplo, llamar a una función del hook)
-    console.log(`Subiendo ${tipoDocumento} para solicitud ${solicitud.id}`, selectedFile);
-
-    // Resetear input
-    setSelectedFile(null);
+  const handleFileChange = (tipo: string, file: File | undefined) => {
+    setArchivos(prev => ({ ...prev, [tipo]: file }));
   };
+
+  const handleUpload = async (tipo: string) => {
+    const file = archivos[tipo];
+    if (!file) {
+      toast.warning("Debe subir una imagen");
+      return;
+    }
+
+    try {
+      if (tipo === tipoCarnet) {
+        await uploadCarnet(file, refetch);
+      } else {
+        let tipoFacturaReal = "Factura de gas";
+        if (tipo.toLowerCase().includes("agua")) tipoFacturaReal = "Factura de agua";
+        if (tipo.toLowerCase().includes("luz")) tipoFacturaReal = "Factura de luz";
+        await uploadFactura(file, tipoFacturaReal, refetch);
+      }
+    } finally {
+      setArchivos(prev => ({ ...prev, [tipo]: undefined }));
+    }
+  };
+
+  const isUploading = (tipo: string) =>
+    tipo === tipoCarnet ? uploadingCarnet : uploadingFactura;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
@@ -57,7 +69,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
           Documentación de Solicitud
         </h2>
 
-        {/* --- Datos principales --- */}
+        {/* Datos principales */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cliente</p>
@@ -78,7 +90,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
           </div>
         </div>
 
-        {/* --- Documentos Adjuntos --- */}
+        {/* Documentos adjuntos */}
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
             Documentos Adjuntos
@@ -94,7 +106,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
                 <p className="text-gray-500 text-sm">No hay documentos registrados.</p>
               ) : (
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700 mb-6">
-                  {documentosSolicitud.map((doc) => (
+                  {documentosSolicitud.map(doc => (
                     <li
                       key={doc.id}
                       className="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 rounded-lg transition"
@@ -112,53 +124,78 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
                         </p>
                       </div>
 
-                      {!doc.verificado ? (
+                      {!doc.verificado && (
                         <div className="flex items-center gap-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className="text-xs text-gray-600"
-                          />
+                          <label className="cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                            Seleccionar archivo
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={e =>
+                                handleFileChange(doc.tipo_documento, e.target.files?.[0] ?? undefined)
+                              }
+                              className="hidden"
+                              disabled={isUploading(doc.tipo_documento)}
+                            />
+                          </label>
+                          {archivos[doc.tipo_documento] && (
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              Imagen Cargada
+                            </span>
+                          )}
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => handleFileUpload(doc.tipo_documento)}
+                            onClick={() => handleUpload(doc.tipo_documento)}
+                            disabled={isUploading(doc.tipo_documento)}
                           >
-                            Subir
+                            {isUploading(doc.tipo_documento) ? "Subiendo..." : "Subir"}
                           </Button>
                         </div>
-                      ) : null}
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
 
-              {/* --- Tipos faltantes --- */}
+              {/* Tipos faltantes */}
               {tiposFaltantes.length > 0 && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <h4 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-3">
                     Documentos faltantes
                   </h4>
                   <ul className="space-y-3">
-                    {tiposFaltantes.map((tipo) => (
+                    {tiposFaltantes.map(tipo => (
                       <li key={tipo} className="flex items-center justify-between gap-2">
                         <span className="text-sm text-gray-700 dark:text-gray-300">{tipo}</span>
-                        <div className="flex items-center gap-2">
+
+                        <label className="cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+                          Seleccionar archivo
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className="text-xs text-gray-600"
+                            onChange={e =>
+                              handleFileChange(tipo, e.target.files?.[0] ?? undefined)
+                            }
+                            className="hidden"
+                            disabled={isUploading(tipo)}
                           />
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleFileUpload(tipo)}
-                          >
-                            Subir
-                          </Button>
-                        </div>
+                        </label>
+
+                        {archivos[tipo] && (
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Imagen Cargada  
+                          </span>
+                        )}
+
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleUpload(tipo)}
+                          disabled={isUploading(tipo)}
+                        >
+                          {isUploading(tipo) ? "Subiendo..." : "Subir"}
+                        </Button>
                       </li>
                     ))}
                   </ul>
