@@ -1,21 +1,22 @@
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
 } from "../../ui/table";
 import Button from "../../ui/button/Button";
 import Badge from "../../ui/badge/Badge";
-import { MoreDotIcon } from "../../../icons";
+import { MoreDotIcon, FileIcon } from "../../../icons";
 import { Solicitud } from "../../../types/solicitud";
 
 type Props = {
   solicitudes: Solicitud[];
   onEdit: (solicitud: Solicitud) => void;
+  onView: (solicitud: Solicitud) => void;
 };
 
-export default function SolicitudTable({ solicitudes, onEdit }: Props) {
+export default function SolicitudTable({ solicitudes, onEdit, onView }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -28,8 +29,7 @@ export default function SolicitudTable({ solicitudes, onEdit }: Props) {
               <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Propósito</TableCell>
               <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Fecha Solicitud</TableCell>
               <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Estado</TableCell>
-              <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Acciones</TableCell>
-            </TableRow>
+              <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Acciones / Documentos</TableCell>            </TableRow>
           </TableHeader>
 
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -58,24 +58,34 @@ export default function SolicitudTable({ solicitudes, onEdit }: Props) {
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                   <Badge
-                  size="sm"
-                  color={
-                    solicitud.estado === "Aprobada"
-                    ? "success"
-                    : solicitud.estado === "Rechazada"
-                    ? "error"
-                    : "warning"
-                  }
+                    size="sm"
+                    color={
+                      solicitud.estado === "Aprobada"
+                        ? "success"
+                        : solicitud.estado === "Rechazada"
+                          ? "error"
+                          : "warning"
+                    }
                   >
-                  {solicitud.estado}
+                    {solicitud.estado}
                   </Badge>
                 </TableCell>
-                <TableCell className="px-4 py-3">
+
+                <TableCell className="px-4 py-3 flex gap-2">
                   <Button
                     variant="outline"
                     size="md"
                     endIcon={<MoreDotIcon className="size-5" />}
                     onClick={() => onEdit(solicitud)}
+                  >
+                    {" "}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="md"
+                    endIcon={<FileIcon className="size-5" />}
+                    onClick={() => onView(solicitud)}
                   >
                     {" "}
                   </Button>
@@ -88,4 +98,3 @@ export default function SolicitudTable({ solicitudes, onEdit }: Props) {
     </div>
   );
 }
-  
