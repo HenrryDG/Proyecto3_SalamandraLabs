@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../hooks/auth/useAuth"
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +25,14 @@ export default function SignInForm() {
       setIsSubmitting(false);
     }
   };
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("access");
+  useEffect(() => {
+    if (token) {
+      navigate("/", { replace: true });
+    }
+  }, [token, navigate]);
 
   return (
     <div className="flex flex-col flex-1">

@@ -21,7 +21,7 @@ export const useAuth = () => {
             localStorage.setItem("refresh", refresh);
 
             // Redirigir a la página principal
-            navigate("/");
+            navigate("/", { replace: true });
             toast.success("Inicio de sesión exitoso");
         } catch (error: any) {
             if (error.response?.status === 401 || error.response?.status === 400) {
