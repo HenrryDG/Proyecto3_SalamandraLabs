@@ -6,6 +6,7 @@ import { useUploadCarnet } from "../../../hooks/documento/useUploadCarnet";
 import { useUploadFactura } from "../../../hooks/documento/useUploadFactura";
 import { useState } from "react";
 import { toast } from "sonner";
+import DocumentoRow from "../../form/DocumentoRow";
 
 interface Props {
   isOpen: boolean;
@@ -17,7 +18,6 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
   if (!solicitud) return null;
 
   const { documentos, loading, error, refetch } = useDocumentos(solicitud.id);
-
   const { uploading: uploadingCarnet, upload: uploadCarnet } = useUploadCarnet(solicitud.id);
   const { uploading: uploadingFactura, upload: uploadFactura } = useUploadFactura(solicitud.id);
 
@@ -62,39 +62,28 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
   const isUploading = (tipo: string) =>
     tipo === tipoCarnet ? uploadingCarnet : uploadingFactura;
 
+
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
       <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
-          Documentación de Solicitud
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">Documentación de Solicitud</h2>
 
-        {/* Datos principales */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cliente</p>
-            <p className="text-lg font-semibold text-gray-800 dark:text-white">
-              {solicitud.cliente_nombre}
-            </p>
+            <p className="text-lg font-semibold text-gray-800 dark:text-white">{solicitud.cliente_nombre}</p>
           </div>
-
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Monto Solicitado</p>
             <p className="text-lg font-semibold text-gray-800 dark:text-white">
-              {Number(solicitud.monto_solicitado).toLocaleString("es-BO", {
-                style: "currency",
-                currency: "BOB",
-                minimumFractionDigits: 2,
-              })}
+              {Number(solicitud.monto_solicitado).toLocaleString("es-BO", { style: "currency", currency: "BOB", minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
 
-        {/* Documentos adjuntos */}
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-            Documentos Adjuntos
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Documentos Adjuntos</h3>
 
           {loading ? (
             <p className="text-gray-500 text-sm">Cargando documentos...</p>
@@ -107,96 +96,33 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
               ) : (
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700 mb-6">
                   {documentosSolicitud.map(doc => (
-                    <li
+                    <DocumentoRow
                       key={doc.id}
-                      className="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 rounded-lg transition"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-gray-800 dark:text-white">
-                          {doc.tipo_documento}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {doc.verificado ? (
-                            <span className="text-green-600">Verificado</span>
-                          ) : (
-                            <span className="text-red-500">No verificado</span>
-                          )}
-                        </p>
-                      </div>
+                      tipo={doc.tipo_documento}
+                      verificado={doc.verificado}
+                      archivo={archivos[doc.tipo_documento]}
+                      isUploading={isUploading}
+                      handleFileChange={handleFileChange}
+                      handleUpload={handleUpload}
+                    />
 
-                      {!doc.verificado && (
-                        <div className="flex items-center gap-2">
-                          <label className="cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
-                            Seleccionar archivo
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={e =>
-                                handleFileChange(doc.tipo_documento, e.target.files?.[0] ?? undefined)
-                              }
-                              className="hidden"
-                              disabled={isUploading(doc.tipo_documento)}
-                            />
-                          </label>
-                          {archivos[doc.tipo_documento] && (
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              Imagen Cargada
-                            </span>
-                          )}
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleUpload(doc.tipo_documento)}
-                            disabled={isUploading(doc.tipo_documento)}
-                          >
-                            {isUploading(doc.tipo_documento) ? "Subiendo..." : "Subir"}
-                          </Button>
-                        </div>
-                      )}
-                    </li>
                   ))}
                 </ul>
               )}
 
-              {/* Tipos faltantes */}
               {tiposFaltantes.length > 0 && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <h4 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-3">
-                    Documentos faltantes
-                  </h4>
+                  <h4 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-3">Documentos faltantes</h4>
                   <ul className="space-y-3">
                     {tiposFaltantes.map(tipo => (
-                      <li key={tipo} className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{tipo}</span>
-
-                        <label className="cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
-                          Seleccionar archivo
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={e =>
-                              handleFileChange(tipo, e.target.files?.[0] ?? undefined)
-                            }
-                            className="hidden"
-                            disabled={isUploading(tipo)}
-                          />
-                        </label>
-
-                        {archivos[tipo] && (
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            Imagen Cargada  
-                          </span>
-                        )}
-
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleUpload(tipo)}
-                          disabled={isUploading(tipo)}
-                        >
-                          {isUploading(tipo) ? "Subiendo..." : "Subir"}
-                        </Button>
-                      </li>
+                      <DocumentoRow
+                        key={tipo}
+                        tipo={tipo}
+                        archivo={archivos[tipo]}
+                        isUploading={isUploading}
+                        handleFileChange={handleFileChange}
+                        handleUpload={handleUpload}
+                      />
                     ))}
                   </ul>
                 </div>
