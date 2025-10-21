@@ -21,36 +21,35 @@ interface Props {
 export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props) {
   const { mutate, isPending } = useCreateCliente();
 
-  // Estado inicial vacío
   const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
-
-  // Formulario y errores
   const [form, setForm] = useState(initialForm);
   const [errores, setErrores] = useState(initialForm);
 
-  // Maneja cambios en los campos del formulario
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setForm(prev => ({ ...prev, [key]: value }));
 
-    // Validar el campo y actualizar errores
     const campo = campos.find(c => c.key === key);
-    setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
+    // Apellidos: solo validar si hay valor
+    setErrores(prev => ({
+      ...prev,
+      [key]: (key === "apellido_paterno" || key === "apellido_materno") && !value
+        ? ""
+        : campo?.validator(value) ?? ""
+    }));
   };
 
-  // Verifica si hay errores en el formulario
+  // Verifica errores en tiempo real directamente desde el form
   const hayErrores =
-    Object.values(errores).some(e => e !== "") ||
-    camposObligatorios.some(key => form[key] === "");
+    camposObligatorios.some(key => !form[key]) ||            // campos obligatorios
+    (!form.apellido_paterno && !form.apellido_materno) ||    // al menos un apellido
+    campos.some(c => c.validator(form[c.key]) !== null && c.key !== "apellido_paterno" && c.key !== "apellido_materno"); // validaciones de formato
 
-  // Maneja el envío del formulario
   const handleSubmit = () => {
     if (hayErrores) return;
 
-    // Preparar datos (convertir teléfono a número)
     const data: ClienteDTO = { ...form, telefono: Number(form.telefono) };
 
-    // Llamar a la mutación para crear el cliente
     mutate(data, {
       onSuccess: () => {
         onClose();
@@ -79,12 +78,9 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
-
               digitsOnly={c.key === "telefono"}
               inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
-
               maxLength={getMaxLength(c.key)}
-
               lettersOnly={
                 c.key === "nombre" ||
                 c.key === "apellido_paterno" ||

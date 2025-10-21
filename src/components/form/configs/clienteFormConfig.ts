@@ -21,8 +21,9 @@ export const campos: {
 }[] = [
   { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
   { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
+  // Apellidos: solo validar si hay texto
+  { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => !v ? null : validarTextoMinimo(v, 3) || validarTexto(v) },
+  { key: "apellido_materno", label: "Apellido Materno", validator: (v) => !v ? null : validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
   { key: "tipo_trabajo", label: "Ocupación", validator: (v) => validarLongitud(v, 1, 30) || validarTexto(v) },
   { key: "ingreso_mensual", label: "Ingreso Mensual", type: "number", validator: validarIngreso },
@@ -46,7 +47,7 @@ export const maxLengths: Record<FormKeys, number> = {
 
 export const getMaxLength = (key: FormKeys) => maxLengths[key] || undefined;
 
-// Campos obligatorios (excepto correo)
+// Campos obligatorios (excepto correo y apellidos)
 export const camposObligatorios: FormKeys[] = campos
-  .filter(c => c.key !== "correo")
+  .filter(c => c.key !== "correo" && c.key !== "apellido_paterno" && c.key !== "apellido_materno")
   .map(c => c.key);
