@@ -28,8 +28,15 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
   const [errores, setErrores] = useState(initialForm);
 
   // Maneja cambios en inputs
+  // Maneja cambios en inputs
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+
+    // Evitar espacios en usuario y contraseña
+    if (key === "username" || key === "password") {
+      value = value.replace(/\s/g, "");
+    }
+
     setForm(prev => ({ ...prev, [key]: value }));
 
     const campo = campos.find(c => c.key === key);
@@ -40,6 +47,7 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
         : campo?.validator(value) ?? ""
     }));
   };
+
 
   // Maneja cambios en select
   const handleSelectChange = (key: FormKeys) => (value: string) => {
