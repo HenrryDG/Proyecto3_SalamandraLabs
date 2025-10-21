@@ -11,6 +11,7 @@ import CreateSolicitudModal from "../../components/modals/solicitud/CreateSolici
 import EditSolicitudModal from "../../components/modals/solicitud/EditSolicitudModal";
 import { Solicitud } from "../../types/solicitud";
 import { FaPlus } from "react-icons/fa";
+import DocumentosSolicitudModal from "../../components/modals/solicitud/DocumentoSolicitudModal";
 
 export default function SolicitudesPage() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -23,6 +24,15 @@ export default function SolicitudesPage() {
   const handleEdit = (solicitud: Solicitud) => {
     setSolicitudEdit(solicitud);
     setIsEditOpen(true);
+  };
+
+  // Documentación
+  const [solicitudView, setSolicitudView] = useState<Solicitud | null>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+
+  const handleView = (solicitud: Solicitud) => {
+    setSolicitudView(solicitud);
+    setIsViewOpen(true);
   };
 
   const [filtro, setFiltro] = useState("");
@@ -111,7 +121,7 @@ export default function SolicitudesPage() {
             <p className="text-center text-gray-500 dark:text-gray-400">No hay solicitudes que coincidan con el filtro.</p>
           ) : (
             <>
-              <SolicitudTable solicitudes={solicitudesPaginadas} onEdit={handleEdit} />
+              <SolicitudTable solicitudes={solicitudesPaginadas} onEdit={handleEdit} onView={handleView} />
               <Pagination paginaActual={paginaActual} totalPaginas={totalPaginas} onPrev={onPrev} onNext={onNext} />
             </>
           )}
@@ -131,6 +141,13 @@ export default function SolicitudesPage() {
         onClose={() => setIsEditOpen(false)}
         solicitud={solicitudEdit}
         onUpdated={refetch}
+      />
+
+      {/* === Modal de documentación === */}
+      <DocumentosSolicitudModal
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        solicitud={solicitudView}
       />
     </div>
   );
