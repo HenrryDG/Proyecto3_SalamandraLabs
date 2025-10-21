@@ -1,6 +1,4 @@
 import Button from "../ui/button/Button";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface Props {
   tipo: string;
