@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Button from "../ui/button/Button";
 
 interface Props {
@@ -5,7 +6,7 @@ interface Props {
   verificado?: boolean;
   isUploading: (tipo: string) => boolean;
   handleFileChange: (tipo: string, file: File | undefined) => void;
-  handleUpload: (tipo: string) => Promise<void>;
+  handleUpload: (tipo: string, tipoFactura?: string) => Promise<void>;
   archivo?: File;
 }
 
@@ -17,6 +18,10 @@ export default function DocumentoRow({
   handleUpload,
   archivo,
 }: Props) {
+  const [tipoFactura, setTipoFactura] = useState<string>("");
+
+  const esFacturaGeneral = tipo.toLowerCase().includes("factura de agua / luz / gas");
+
   return (
     <li className="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 rounded-lg transition">
       <div>
@@ -30,7 +35,21 @@ export default function DocumentoRow({
             )}
           </p>
         )}
+
+        {esFacturaGeneral && (
+          <select
+            value={tipoFactura}
+            onChange={(e) => setTipoFactura(e.target.value)}
+            className="mt-1 text-sm border border-gray-300 rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Seleccionar tipo de factura</option>
+            <option value="Factura de agua">Factura de agua</option>
+            <option value="Factura de luz">Factura de luz</option>
+            <option value="Factura de gas">Factura de gas</option>
+          </select>
+        )}
       </div>
+
       {!verificado && (
         <div className="flex items-center gap-2">
           <label className="cursor-pointer bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -38,13 +57,20 @@ export default function DocumentoRow({
             <input
               type="file"
               accept="image/*"
-              onChange={e => handleFileChange(tipo, e.target.files?.[0] ?? undefined)}
+              onChange={(e) => handleFileChange(tipo, e.target.files?.[0] ?? undefined)}
               className="hidden"
               disabled={isUploading(tipo)}
             />
           </label>
-          {archivo && <span className="text-sm text-gray-700 dark:text-gray-300">Imagen Cargada</span>}
-          <Button variant="primary" size="sm" onClick={() => handleUpload(tipo)} disabled={isUploading(tipo)}>
+
+          {archivo && <span className="text-sm text-gray-700 dark:text-gray-300">Imagen cargada</span>}
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleUpload(tipo, tipoFactura)}
+            disabled={isUploading(tipo)}
+          >
             {isUploading(tipo) ? "Subiendo..." : "Subir"}
           </Button>
         </div>

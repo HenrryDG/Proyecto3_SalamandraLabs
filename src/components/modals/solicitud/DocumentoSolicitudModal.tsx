@@ -38,7 +38,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
     setArchivos(prev => ({ ...prev, [tipo]: file }));
   };
 
-  const handleUpload = async (tipo: string) => {
+  const handleUpload = async (tipo: string, tipoFactura?: string) => {
     const file = archivos[tipo];
     if (!file) {
       toast.warning("Debe subir una imagen");
@@ -49,9 +49,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
       if (tipo === tipoCarnet) {
         await uploadCarnet(file, refetch);
       } else {
-        let tipoFacturaReal = "Factura de gas";
-        if (tipo.toLowerCase().includes("agua")) tipoFacturaReal = "Factura de agua";
-        if (tipo.toLowerCase().includes("luz")) tipoFacturaReal = "Factura de luz";
+        const tipoFacturaReal = tipoFactura || tipo;
         await uploadFactura(file, tipoFacturaReal, refetch);
       }
     } finally {
@@ -62,28 +60,36 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
   const isUploading = (tipo: string) =>
     tipo === tipoCarnet ? uploadingCarnet : uploadingFactura;
 
-
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
       <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">Documentación de Solicitud</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
+          Documentación de Solicitud
+        </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cliente</p>
-            <p className="text-lg font-semibold text-gray-800 dark:text-white">{solicitud.cliente_nombre}</p>
+            <p className="text-lg font-semibold text-gray-800 dark:text-white">
+              {solicitud.cliente_nombre}
+            </p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Monto Solicitado</p>
             <p className="text-lg font-semibold text-gray-800 dark:text-white">
-              {Number(solicitud.monto_solicitado).toLocaleString("es-BO", { style: "currency", currency: "BOB", minimumFractionDigits: 2 })}
+              {Number(solicitud.monto_solicitado).toLocaleString("es-BO", {
+                style: "currency",
+                currency: "BOB",
+                minimumFractionDigits: 2,
+              })}
             </p>
           </div>
         </div>
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Documentos Adjuntos</h3>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            Documentos Adjuntos
+          </h3>
 
           {loading ? (
             <p className="text-gray-500 text-sm">Cargando documentos...</p>
@@ -105,14 +111,15 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
                       handleFileChange={handleFileChange}
                       handleUpload={handleUpload}
                     />
-
                   ))}
                 </ul>
               )}
 
               {tiposFaltantes.length > 0 && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <h4 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-3">Documentos faltantes</h4>
+                  <h4 className="text-md font-semibold text-gray-700 dark:text-gray-200 mb-3">
+                    Documentos faltantes
+                  </h4>
                   <ul className="space-y-3">
                     {tiposFaltantes.map(tipo => (
                       <DocumentoRow
