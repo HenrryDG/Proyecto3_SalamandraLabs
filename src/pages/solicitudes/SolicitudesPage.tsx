@@ -36,7 +36,7 @@ export default function SolicitudesPage() {
   };
 
   const [filtro, setFiltro] = useState("");
-  const [estado, setEstado] = useState("Pendiente");
+  const [estado, setEstado] = useState("Todos");
   const [rangoFechas, setRangoFechas] = useState<[Date | null, Date | null]>([null, null]);
 
   const [paginaActual, setPaginaActual] = useState(1);

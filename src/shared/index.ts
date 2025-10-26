@@ -14,6 +14,7 @@ export const estados: rol[] = [
 ]
 
 export const estadosSolicitud: rol[] = [
+    { value: "Todos", label: "Todos" },
     { value: "Aprobada", label: "Aprobada" },
     { value: "Rechazada", label: "Rechazada" },
     { value: "Pendiente", label: "Pendiente" },

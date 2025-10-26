@@ -12,11 +12,37 @@ export const useCreateCliente = () => {
             queryClient.invalidateQueries({ queryKey: ["clientes"] });
         },
         onError: (error: any) => {
-            // Intenta extraer el mensaje desde error.response.data.error o error.response.data.message
-            const mensaje =
-                error?.response?.data?.error ||
-                error?.response?.data?.mensaje ||
-                "Error al registrar empleado";
+            const data = error?.response?.data;
+
+            // Detectar si hay errores de validación
+            let mensaje = "Error al registrar cliente";
+
+            if (data){
+                if (typeof data === "string"){
+                    mensaje = data;
+                }
+                else if (data.mensaje){
+                    mensaje = data.mensaje;
+                }
+
+                // Si hay errores detallados del serializador
+
+                if (data.errores){
+                    // Extraer el primer mensaje legible
+                    const errores = data.errores;
+                    const primerCampo = Object.keys(errores)[0];
+                    const primerMensaje = errores[primerCampo][0];
+
+                    if (primerMensaje){
+                        mensaje = primerMensaje;
+                    }
+                }
+            }
+
+            // Si no vino directamente en "error"
+            if (data.error && typeof data.error === "string"){
+                mensaje = data.error;
+            }
 
             toast.error(mensaje);
         }

@@ -11,20 +11,47 @@ export function useUpdateCliente() {
         setIsUpdating(true);
         setError(null);
 
-        try{
+        try {
             const updated = await updateCliente(cliente);
             toast.success("Cliente actualizado exitosamente");
             return updated;
+
         } catch (err: any) {
-            toast.error(err.response?.data?.error || "Error al actualizar el cliente");
+            const data = err?.response?.data;
+            let mensaje = "Error al actualizar el cliente";
+
+            if (data) {
+                if (typeof data === "string") {
+                    mensaje = data;
+                } else if (data.mensaje) {
+                    mensaje = data.mensaje;
+                }
+
+                // Si hay errores del serializer (por campo)
+                if (data.errores) {
+                    const errores = data.errores;
+                    const primerCampo = Object.keys(errores)[0];
+                    const primerMensaje = errores[primerCampo]?.[0];
+                    if (primerMensaje) mensaje = primerMensaje;
+                }
+
+                // Si vino directamente en 'error'
+                if (data.error && typeof data.error === "string") {
+                    mensaje = data.error;
+                }
+            }
+
+            toast.error(mensaje);
+            setError(mensaje);
             return null;
+
         } finally {
             setIsUpdating(false);
         }
     };
 
     return {
-        update, 
+        update,
         isUpdating,
         error,
     };
