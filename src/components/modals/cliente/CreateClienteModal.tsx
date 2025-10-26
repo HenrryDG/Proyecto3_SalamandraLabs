@@ -11,6 +11,7 @@ import {
   getMaxLength,
   FormKeys
 } from "../../form/configs/clienteFormConfig";
+import { validarCarnetConComplemento } from "../../utils/validaciones";
 
 interface Props {
   isOpen: boolean;
@@ -26,17 +27,78 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
   const [errores, setErrores] = useState(initialForm);
 
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    
+    // Convertir complemento a mayúsculas
+    if (key === "complemento") {
+      value = value.toUpperCase();
+      
+      // Validar restricciones de complemento en tiempo real
+      const numCount = (value.match(/\d/g) || []).length;
+      const letterCount = (value.match(/[A-Z]/g) || []).length;
+      const hasSpecial = /[^A-Z0-9]/.test(value);
+      
+      // Si hay caracteres especiales, eliminarlos
+      if (hasSpecial) {
+        value = value.replace(/[^A-Z0-9]/g, "");
+      }
+      
+      // Si ya hay un número y se intenta agregar otro, no permitir
+      if (numCount > 1) {
+        value = value.replace(/\d/g, (match, offset) => {
+          return offset === value.indexOf(value.match(/\d/)![0]) ? match : "";
+        });
+      }
+      
+      // Si ya hay una letra y se intenta agregar otra, no permitir
+      if (letterCount > 1) {
+        value = value.replace(/[A-Z]/g, (match, offset) => {
+          return offset === value.indexOf(value.match(/[A-Z]/)![0]) ? match : "";
+        });
+      }
+      
+      // Limitar a 2 caracteres
+      if (value.length > 2) {
+        value = value.slice(0, 2);
+      }
+    }
+    
+    // Limitar carnet según si hay complemento
+    if (key === "carnet") {
+      const maxCarnetLength = form.complemento ? 7 : 8;
+      if (value.length > maxCarnetLength) {
+        value = value.slice(0, maxCarnetLength);
+      }
+    }
+    
     setForm(prev => ({ ...prev, [key]: value }));
 
     const campo = campos.find(c => c.key === key);
+    
+    // Para carnet, necesitamos pasar el complemento actual
+    if (key === "carnet") {
+      const errorCarnet = validarCarnetConComplemento(value, form.complemento);
+      setErrores(prev => ({ ...prev, carnet: errorCarnet ?? "" }));
+    }
+    // Para complemento, necesitamos revalidar el carnet
+    else if (key === "complemento") {
+      const errorComplemento = campo?.validator(value) ?? "";
+      const errorCarnet = validarCarnetConComplemento(form.carnet, value);
+      setErrores(prev => ({ 
+        ...prev, 
+        complemento: errorComplemento,
+        carnet: errorCarnet ?? ""
+      }));
+    }
     // Apellidos: solo validar si hay valor
-    setErrores(prev => ({
-      ...prev,
-      [key]: (key === "apellido_paterno" || key === "apellido_materno") && !value
-        ? ""
-        : campo?.validator(value) ?? ""
-    }));
+    else {
+      setErrores(prev => ({
+        ...prev,
+        [key]: (key === "apellido_paterno" || key === "apellido_materno") && !value
+          ? ""
+          : campo?.validator(value) ?? ""
+      }));
+    }
   };
 
   // Verifica errores en tiempo real directamente desde el form
@@ -78,8 +140,8 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               error={!!errores[c.key]}
               hint={errores[c.key]}
               min={c.type === "number" ? 0 : undefined}
-              digitsOnly={c.key === "telefono"}
-              inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : undefined}
+              digitsOnly={c.key === "telefono" || c.key === "carnet"}
+              inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : c.key === "carnet" ? "numeric" : undefined}
               maxLength={getMaxLength(c.key)}
               lettersOnly={
                 c.key === "nombre" ||
@@ -90,6 +152,7 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
               decimal={c.key === "ingreso_mensual"}
               maxIntegerDigits={6}
               maxDecimalDigits={2}
+              className={c.key === "complemento" ? "sm:col-span-1" : c.key === "carnet" ? "sm:col-span-1" : ""}
             />
           ))}
         </div>

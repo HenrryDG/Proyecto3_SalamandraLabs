@@ -21,5 +21,5 @@ export const updateEmpleado = async (empleado: Empleado): Promise<Empleado> => {
 // * === SERVICIO PARA HABILITAR/DESHABILITAR UN EMPLEADO === * //
 export const toggleEmpleado = async (id: number): Promise<{ mensaje: string }> => {
     const response = await api.patch(`/empleados/${id}/`);
-    return response.data.mensaje;
+    return response.data;
 }

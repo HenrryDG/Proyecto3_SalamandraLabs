@@ -132,15 +132,21 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
           <Button
             onClick={async () => {
               if (!empleado) return;
-              await toggle(empleado.id);
-              onClose();
-              onUpdated?.();
+
+              try {
+                await toggle(empleado.id);
+                // Solo cerrar si no hubo error
+                onUpdated?.();
+                onClose();
+              } catch (err) {
+                // Aquí no haces nada, ya se muestra el toast desde useToggleEmpleado
+                console.log("No se pudo deshabilitar el empleado:", err);
+              }
             }}
             disabled={isToggling}
           >
             {isToggling ? "Procesando..." : empleado?.activo ? "Deshabilitar" : "Habilitar"}
           </Button>
-
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={isUpdating || hayErrores}>
             {isUpdating ? "Actualizando..." : "Guardar Cambios"}

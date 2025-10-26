@@ -46,7 +46,7 @@ export default function ClienteTable({ clientes, onEdit }: Props) {
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                                    {cliente.carnet}
+                                    { cliente.complemento ? `${cliente.carnet}-${cliente.complemento}` : cliente.carnet }
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                     {cliente.direccion}

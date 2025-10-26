@@ -1,12 +1,13 @@
 import {
   validarTexto,
   validarTelefono,
-  validarCarnet,
   validarCorreo,
   validarIngreso,
   validarLongitud,
   validarTextoMinimo,
-  validarCorreoExtension
+  validarCorreoExtension,
+  validarCarnetConComplemento,
+  validarComplemento
 } from "../../utils/validaciones";
 
 import { ClienteDTO } from "../../../types/cliente";
@@ -17,11 +18,17 @@ export const campos: {
   key: FormKeys;
   label: string;
   type?: string;
-  validator: (val: string) => string | null;
+  validator: (val: string, form?: ClienteDTO) => string | null;
 }[] = [
-  { key: "carnet", label: "Carnet", validator: (v) => validarCarnet(v, 6) },
+  { key: "carnet", label: "Carnet",
+    validator: (v, form) => validarCarnetConComplemento(v, form?.complemento)
+  },
+  {
+    key: "complemento",
+    label: "Complemento",
+    validator: (v) => validarComplemento(v)
+  },
   { key: "nombre", label: "Nombre", validator: (v) => validarTextoMinimo(v, 3) || validarTexto(v) },
-  // Apellidos: solo validar si hay texto
   { key: "apellido_paterno", label: "Apellido Paterno", validator: (v) => !v ? null : validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "apellido_materno", label: "Apellido Materno", validator: (v) => !v ? null : validarTextoMinimo(v, 3) || validarTexto(v) },
   { key: "lugar_trabajo", label: "Lugar de Trabajo", validator: (v) => validarLongitud(v, 1, 60) || validarTexto(v) },
@@ -35,6 +42,7 @@ export const campos: {
 export const maxLengths: Record<FormKeys, number> = {
   telefono: 8,
   carnet: 12,
+  complemento: 2,
   lugar_trabajo: 60,
   tipo_trabajo: 30,
   direccion: 255,
@@ -47,7 +55,6 @@ export const maxLengths: Record<FormKeys, number> = {
 
 export const getMaxLength = (key: FormKeys) => maxLengths[key] || undefined;
 
-// Campos obligatorios (excepto correo y apellidos)
 export const camposObligatorios: FormKeys[] = campos
-  .filter(c => c.key !== "correo" && c.key !== "apellido_paterno" && c.key !== "apellido_materno")
+  .filter(c => c.key !== "correo" && c.key !== "apellido_paterno" && c.key !== "apellido_materno" && c.key !== "complemento")
   .map(c => c.key);

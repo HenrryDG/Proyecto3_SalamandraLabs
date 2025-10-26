@@ -1,6 +1,7 @@
 export interface Cliente{
     id: number;
     carnet: string;
+    complemento: string;
     nombre: string;
     apellido_paterno: string;
     apellido_materno: string;
@@ -15,6 +16,7 @@ export interface Cliente{
 
 export interface ClienteDTO {
   carnet: string;
+  complemento: string;
   nombre: string;
   apellido_paterno: string;
   apellido_materno: string;

@@ -41,6 +41,42 @@ export const validarCarnet = (carnet: string, min: number): string | null => {
   return null;
 };
 
+// Validar complemento: opcional, máximo 2 caracteres (1 número y 1 letra), sin caracteres especiales
+export const validarComplemento = (complemento: string): string | null => {
+  if (!complemento || complemento.trim() === "") return null; // opcional
+  
+  // Validar que solo contenga alfanuméricos (sin caracteres especiales)
+  if (!/^[A-Za-z0-9]+$/.test(complemento)) return "El complemento no puede contener caracteres especiales";
+  
+  // Contar números y letras
+  const numCount = (complemento.match(/\d/g) || []).length;
+  const letterCount = (complemento.match(/[A-Za-z]/g) || []).length;
+  
+  if (numCount > 1) return "El complemento no puede tener más de un número";
+  if (letterCount > 1) return "El complemento no puede tener más de una letra";
+  if (complemento.length > 2) return "El complemento no puede tener más de 2 caracteres";
+  
+  return null;
+};
+
+// Validar carnet dependiendo del complemento
+export const validarCarnetConComplemento = (carnet: string, complemento?: string): string | null => {
+  if (!carnet || carnet.trim() === "") return "El carnet es obligatorio";
+  
+  const c = complemento?.trim() || "";
+
+  if (!c) {
+    // Sin complemento: máximo 8 dígitos
+    if (!/^\d{1,8}$/.test(carnet)) return "Sin complemento, el carnet debe tener hasta 8 números";
+  } else {
+    // Con complemento: exactamente 7 dígitos
+    if (!/^\d{1,7}$/.test(carnet)) return "Con complemento, el carnet debe tener hasta 7 números";
+  }
+
+  return null;
+};
+
+
 export const validarCorreo = (correo: string): string | null => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(correo)) return "El correo no es válido";
