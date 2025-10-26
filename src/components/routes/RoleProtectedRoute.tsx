@@ -16,7 +16,7 @@ const RoleProtectedRoute = ({ allowedRoles, children }: RoleProtectedRouteProps)
   console.log("Rol del usuario autenticado:", rolUsuario);
 
   if (!rolUsuario || !allowedRoles.includes(rolUsuario)) {
-    return <Navigate to="/error-404" replace />;
+    return <Navigate to="/error-403" replace />;
   }
 
   return children;

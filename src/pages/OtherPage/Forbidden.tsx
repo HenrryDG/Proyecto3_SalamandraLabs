@@ -2,12 +2,12 @@ import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 
-export default function NotFound() {
+export default function Forbidden() {
   return (
     <>
       <PageMeta
-        title="No Encontrado"
-        description="Página de error 404"
+        title="Permiso Denegado"
+        description="Página de error 403"
       />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">
         <GridShape />
@@ -16,15 +16,15 @@ export default function NotFound() {
             ERROR
           </h1>
 
-          <img src="/images/error/404.svg" alt="404" className="dark:hidden" />
+          <img src="/images/error/403.svg" alt="403" className="dark:hidden" />
           <img
-            src="/images/error/404-dark.svg"
-            alt="404"
+            src="/images/error/403-dark.svg"
+            alt="403"
             className="hidden dark:block"
           />
 
           <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-            No se encontró la página que buscabas.
+            No tienes permiso para acceder a esta página.
           </p>
 
           <Link
