@@ -31,6 +31,9 @@ export default function SolicitudesPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
 
   const handleView = (solicitud: Solicitud) => {
+    // No abrir el modal si la solicitud está rechazada
+    if (solicitud.estado === "Rechazada") return;
+    
     setSolicitudView(solicitud);
     setIsViewOpen(true);
   };

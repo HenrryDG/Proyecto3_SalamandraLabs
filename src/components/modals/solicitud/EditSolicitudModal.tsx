@@ -100,11 +100,14 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         }
     };
 
+    // Determinar si la solicitud está rechazada
+    const isRechazada = solicitud?.estado === "Rechazada";
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
             <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
-                    Editar Solicitud de Préstamo
+                    {isRechazada ? "Solicitud Rechazada" : "Editar Solicitud de Préstamo"}
                 </h2>
 
                 {/* Formulario de edición */}
@@ -123,6 +126,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             placeholder="Buscar cliente..."
                             error={!!errores.cliente}
                             hint={errores.cliente}
+                            disabled={isRechazada}
                         />
                     </div>
                     <Input
@@ -137,6 +141,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         maxIntegerDigits={6}
                         maxDecimalDigits={2}
                         placeholder="0.00"
+                        disabled={isRechazada}
                     />
                 </div>
 
@@ -150,6 +155,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         hint={errores.proposito}
                         maxLength={getMaxLength("proposito")}
                         lettersOnly={true}
+                        disabled={isRechazada}
                     />
 
                 </div>
@@ -168,6 +174,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             digitsOnly={true}
                             maxLength={2}
                             placeholder="0"
+                            disabled={isRechazada}
                         />
                     </div>
                     <div className="flex-1 space-y-1">
@@ -211,6 +218,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         hint={errores.observaciones}
                         placeholder="Escriba las observaciones aquí..."
                         lettersOnly={true}
+                        disabled={isRechazada}
                     />
                 </div>
 
@@ -244,19 +252,21 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
                         <div className="w-full sm:w-auto">
                             <Button variant="outline" onClick={onClose} className="w-full">
-                                Cancelar
+                                {isRechazada ? "Cerrar" : "Cancelar"}
                             </Button>
                         </div>
-                        <div className="w-full sm:w-auto">
-                            <Button
-                                variant="primary"
-                                onClick={handleSubmit}
-                                disabled={isUpdating || hayErrores || isToggling}
-                                className="w-full"
-                            >
-                                {isUpdating ? "Actualizando..." : "Guardar Cambios"}
-                            </Button>
-                        </div>
+                        {!isRechazada && (
+                            <div className="w-full sm:w-auto">
+                                <Button
+                                    variant="primary"
+                                    onClick={handleSubmit}
+                                    disabled={isUpdating || hayErrores || isToggling}
+                                    className="w-full"
+                                >
+                                    {isUpdating ? "Actualizando..." : "Guardar Cambios"}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
