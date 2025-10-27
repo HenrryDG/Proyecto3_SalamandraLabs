@@ -77,19 +77,22 @@ export default function SolicitudTable({ solicitudes, onEdit, onView }: Props) {
                     size="md"
                     endIcon={<MoreDotIcon className="size-5" />}
                     onClick={() => onEdit(solicitud)}
+                    title="Editar Solicitud"
                   >
                     {" "}
                   </Button>
 
-                  <Button
+                    <Button
                     variant="outline"
                     size="md"
                     endIcon={<FileIcon className="size-5" />}
                     onClick={() => onView(solicitud)}
                     disabled={solicitud.estado === "Rechazada"}
-                  >
+                    title="Ver Documentos"
+                    aria-label="Ver Documentos"
+                    >
                     {" "}
-                  </Button>
+                    </Button>
                 </TableCell>
               </TableRow>
             ))}

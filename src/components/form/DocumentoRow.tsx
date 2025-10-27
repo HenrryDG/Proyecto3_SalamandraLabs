@@ -29,9 +29,9 @@ export default function DocumentoRow({
         {verificado !== undefined && (
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {verificado ? (
-              <span className="text-green-600">Verificado</span>
+              <span className="text-green-600">Los datos coinciden</span>
             ) : (
-              <span className="text-red-500">No verificado</span>
+              <span className="text-red-500">Los datos no coinciden, por favor vuelva a subir el archivo</span>
             )}
           </p>
         )}
@@ -42,7 +42,6 @@ export default function DocumentoRow({
             onChange={(e) => setTipoFactura(e.target.value)}
             className="mt-1 text-sm border border-gray-300 rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">Seleccionar tipo de factura</option>
             <option value="Factura de agua">Factura de agua</option>
             <option value="Factura de luz">Factura de luz</option>
             <option value="Factura de gas">Factura de gas</option>
