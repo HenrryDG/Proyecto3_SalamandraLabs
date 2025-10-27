@@ -12,7 +12,6 @@ import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud"
 import {
     campos,
     camposObligatorios,
-    getMaxLength,
     FormKeys
 } from "../../form/configs/solicitudFormConfig";
 
@@ -100,11 +99,14 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         }
     };
 
+    // Determinar si la solicitud está rechazada
+    const isRechazada = solicitud?.estado === "Rechazada";
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
             <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
-                    Editar Solicitud de Préstamo
+                    {isRechazada ? "Solicitud Rechazada" : "Editar Solicitud de Préstamo"}
                 </h2>
 
                 {/* Formulario de edición */}
@@ -123,6 +125,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             placeholder="Buscar cliente..."
                             error={!!errores.cliente}
                             hint={errores.cliente}
+                            disabled={isRechazada}
                         />
                     </div>
                     <Input
@@ -137,21 +140,32 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         maxIntegerDigits={6}
                         maxDecimalDigits={2}
                         placeholder="0.00"
+                        disabled={isRechazada}
                     />
                 </div>
 
                 {/* Proposito */}
                 <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-4">
-                    <Input
-                        label="Propósito"
-                        value={form.proposito}
-                        onChange={handleInputChange("proposito")}
-                        error={!!errores.proposito}
-                        hint={errores.proposito}
-                        maxLength={getMaxLength("proposito")}
-                        lettersOnly={true}
-                    />
-
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Propósito
+                        </label>
+                        <TextArea
+                            value={form.proposito}
+                            onChange={(value) => {
+                                setForm(prev => ({ ...prev, proposito: value }));
+                                const campo = campos.find(c => c.key === "proposito");
+                                setErrores(prev => ({ ...prev, proposito: campo?.validator(value) ?? "" }));
+                            }}
+                            rows={2}
+                            error={!!errores.proposito}
+                            hint={errores.proposito}
+                            placeholder="Escriba el propósito del préstamo..."
+                            lettersOnly={true}
+                            maxLength={500}
+                            disabled={isRechazada}
+                        />
+                    </div>
                 </div>
 
                 {/* Fecha de Solicitud | Fecha de Aprobación */}
@@ -168,6 +182,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             digitsOnly={true}
                             maxLength={2}
                             placeholder="0"
+                            disabled={isRechazada}
                         />
                     </div>
                     <div className="flex-1 space-y-1">
@@ -198,19 +213,22 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 {/* Observaciones */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Observaciones
+                        Observaciones (Opcional)
                     </label>
                     <TextArea
                         value={form.observaciones}
                         onChange={(value) => {
                             setForm(prev => ({ ...prev, observaciones: value }));
-                            setErrores(prev => ({ ...prev, observaciones: "" }));
+                            const campo = campos.find(c => c.key === "observaciones");
+                            setErrores(prev => ({ ...prev, observaciones: campo?.validator(value) ?? "" }));
                         }}
-                        rows={2}
+                        rows={3}
                         error={!!errores.observaciones}
                         hint={errores.observaciones}
                         placeholder="Escriba las observaciones aquí..."
                         lettersOnly={true}
+                        maxLength={500}
+                        disabled={isRechazada}
                     />
                 </div>
 
@@ -244,19 +262,21 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
                         <div className="w-full sm:w-auto">
                             <Button variant="outline" onClick={onClose} className="w-full">
-                                Cancelar
+                                {isRechazada ? "Cerrar" : "Cancelar"}
                             </Button>
                         </div>
-                        <div className="w-full sm:w-auto">
-                            <Button
-                                variant="primary"
-                                onClick={handleSubmit}
-                                disabled={isUpdating || hayErrores || isToggling}
-                                className="w-full"
-                            >
-                                {isUpdating ? "Actualizando..." : "Guardar Cambios"}
-                            </Button>
-                        </div>
+                        {!isRechazada && (
+                            <div className="w-full sm:w-auto">
+                                <Button
+                                    variant="primary"
+                                    onClick={handleSubmit}
+                                    disabled={isUpdating || hayErrores || isToggling}
+                                    className="w-full"
+                                >
+                                    {isUpdating ? "Actualizando..." : "Guardar Cambios"}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

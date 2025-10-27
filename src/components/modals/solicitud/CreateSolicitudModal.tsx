@@ -10,7 +10,6 @@ import { SolicitudDTO } from "../../form/configs/solicitudFormConfig";
 import {
     campos,
     camposObligatorios,
-    getMaxLength,
     FormKeys
 } from "../../form/configs/solicitudFormConfig";
 
@@ -96,15 +95,25 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
 
                 {/* Propósito */}
                 <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-4">
-                    <Input
-                        label="Propósito"
-                        value={form.proposito}
-                        onChange={handleInputChange("proposito")}
-                        error={!!errores.proposito}
-                        hint={errores.proposito}
-                        maxLength={getMaxLength("proposito")}
-                        lettersOnly={true}
-                    />
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Propósito
+                        </label>
+                        <TextArea
+                            value={form.proposito}
+                            onChange={(value) => {
+                                setForm(prev => ({ ...prev, proposito: value }));
+                                const campo = campos.find(c => c.key === "proposito");
+                                setErrores(prev => ({ ...prev, proposito: campo?.validator(value) ?? "" }));
+                            }}
+                            rows={2}
+                            error={!!errores.proposito}
+                            hint={errores.proposito}
+                            placeholder="Escriba el propósito del préstamo..."
+                            lettersOnly={true}
+                            maxLength={500}
+                        />
+                    </div>
                 </div>
 
 
@@ -144,19 +153,21 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
                 {/* Observaciones */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Observaciones
+                        Observaciones (Opcional)
                     </label>
                     <TextArea
                         value={form.observaciones}
                         onChange={(value) => {
                             setForm(prev => ({ ...prev, observaciones: value }));
-                            setErrores(prev => ({ ...prev, observaciones: "" }));
+                            const campo = campos.find(c => c.key === "observaciones");
+                            setErrores(prev => ({ ...prev, observaciones: campo?.validator(value) ?? "" }));
                         }}
-                        rows={2}
+                        rows={3}
                         error={!!errores.observaciones}
                         hint={errores.observaciones}
                         placeholder="Escriba las observaciones aquí..."
                         lettersOnly={true}
+                        maxLength={500}
                     />
                 </div>
 

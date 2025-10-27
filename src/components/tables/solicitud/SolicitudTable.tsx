@@ -86,6 +86,7 @@ export default function SolicitudTable({ solicitudes, onEdit, onView }: Props) {
                     size="md"
                     endIcon={<FileIcon className="size-5" />}
                     onClick={() => onView(solicitud)}
+                    disabled={solicitud.estado === "Rechazada"}
                   >
                     {" "}
                   </Button>

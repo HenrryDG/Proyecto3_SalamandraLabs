@@ -10,6 +10,7 @@ interface TextareaProps {
   error?: boolean; // Error state
   hint?: string; // Hint text to display
   lettersOnly?: boolean; // Filtra solo letras (incluye acentos y espacios)
+  maxLength?: number; // Longitud máxima de caracteres
 }
 
 const TextArea: React.FC<TextareaProps> = ({
@@ -22,10 +23,19 @@ const TextArea: React.FC<TextareaProps> = ({
   error = false, // Error state
   hint = "", // Default hint text
   lettersOnly = false, // Default letters only
+  maxLength, // Longitud máxima de caracteres
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (onChange) {
-      onChange(e.target.value);
+      let value = e.target.value;
+
+      // Eliminar espacios iniciales
+      value = value.replace(/^\s+/, "");
+
+      // Evitar que el campo quede con solo espacios
+      if (value.trim() === "") value = "";
+
+      onChange(value);
     }
   };
 
@@ -98,7 +108,7 @@ const TextArea: React.FC<TextareaProps> = ({
       }
       : undefined;
 
-  let textareaClasses = `w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden ${className} `;
+  let textareaClasses = `w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden resize-none no-scrollbar ${className} `;
 
   if (disabled) {
     textareaClasses += ` bg-gray-100 opacity-50 text-gray-500 border-gray-300 cursor-not-allowed opacity40 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700`;
@@ -120,6 +130,7 @@ const TextArea: React.FC<TextareaProps> = ({
         onBeforeInput={handleBeforeInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
+        maxLength={maxLength}
       />
       {hint && (
         <p
