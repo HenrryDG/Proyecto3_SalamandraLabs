@@ -54,41 +54,41 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
 
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    
+
     // Convertir complemento a mayúsculas
     if (key === "complemento") {
       value = value.toUpperCase();
-      
+
       // Validar restricciones de complemento en tiempo real
       const numCount = (value.match(/\d/g) || []).length;
       const letterCount = (value.match(/[A-Z]/g) || []).length;
       const hasSpecial = /[^A-Z0-9]/.test(value);
-      
+
       // Si hay caracteres especiales, eliminarlos
       if (hasSpecial) {
         value = value.replace(/[^A-Z0-9]/g, "");
       }
-      
+
       // Si ya hay un número y se intenta agregar otro, no permitir
       if (numCount > 1) {
         value = value.replace(/\d/g, (match, offset) => {
           return offset === value.indexOf(value.match(/\d/)![0]) ? match : "";
         });
       }
-      
+
       // Si ya hay una letra y se intenta agregar otra, no permitir
       if (letterCount > 1) {
         value = value.replace(/[A-Z]/g, (match, offset) => {
           return offset === value.indexOf(value.match(/[A-Z]/)![0]) ? match : "";
         });
       }
-      
+
       // Limitar a 2 caracteres
       if (value.length > 2) {
         value = value.slice(0, 2);
       }
     }
-    
+
     // Limitar carnet según si hay complemento
     if (key === "carnet") {
       const maxCarnetLength = form.complemento ? 7 : 8;
@@ -96,11 +96,11 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
         value = value.slice(0, maxCarnetLength);
       }
     }
-    
+
     setForm(prev => ({ ...prev, [key]: value }));
 
     const campo = campos.find(c => c.key === key);
-    
+
     // Para carnet, necesitamos pasar el complemento actual
     if (key === "carnet") {
       const errorCarnet = validarCarnetConComplemento(value, form.complemento);
@@ -108,14 +108,43 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
     }
     // Para complemento, necesitamos revalidar el carnet
     else if (key === "complemento") {
+      // Convertir a mayúsculas
+      value = value.toUpperCase();
+
+      // Permitir solo letras y números
+      value = value.replace(/[^A-Z0-9]/g, "");
+
+      // Limitar a 2 caracteres
+      if (value.length > 2) {
+        value = value.slice(0, 2);
+      }
+
+      // Validar formato número + letra (en ese orden)
+      const regex = /^[0-9][A-Z]?$/;
+      if (!regex.test(value) && value !== "") {
+        const firstChar = value[0];
+        const secondChar = value[1];
+
+        if (firstChar && isNaN(Number(firstChar))) {
+          // Si el primero no es número, eliminarlo
+          value = value.slice(1);
+        } else if (secondChar && !/[A-Z]/.test(secondChar)) {
+          // Si el segundo no es letra, eliminarlo
+          value = value[0];
+        }
+      }
+
+      // Luego, ejecutar las validaciones normales
       const errorComplemento = campo?.validator(value) ?? "";
       const errorCarnet = validarCarnetConComplemento(form.carnet, value);
-      setErrores(prev => ({ 
-        ...prev, 
+
+      setErrores(prev => ({
+        ...prev,
         complemento: errorComplemento,
         carnet: errorCarnet ?? ""
       }));
     }
+
     // Apellidos: solo validar si hay valor
     else {
       setErrores(prev => ({
@@ -131,8 +160,8 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
     camposObligatorios.some(key => !form[key]) ||                  // Campos obligatorios
     (!form.apellido_paterno && !form.apellido_materno) ||          // Al menos un apellido
     campos.some(c => c.validator(form[c.key]) !== null &&
-                   c.key !== "apellido_paterno" &&
-                   c.key !== "apellido_materno");                 // Validaciones de formato
+      c.key !== "apellido_paterno" &&
+      c.key !== "apellido_materno");                 // Validaciones de formato
 
   const handleSubmit = async () => {
     if (!cliente || hayErrores) return;

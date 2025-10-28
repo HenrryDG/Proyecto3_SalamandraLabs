@@ -29,41 +29,38 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
 
   const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    
+
     // Convertir complemento a mayúsculas
     if (key === "complemento") {
       value = value.toUpperCase();
-      
-      // Validar restricciones de complemento en tiempo real
-      const numCount = (value.match(/\d/g) || []).length;
-      const letterCount = (value.match(/[A-Z]/g) || []).length;
-      const hasSpecial = /[^A-Z0-9]/.test(value);
-      
-      // Si hay caracteres especiales, eliminarlos
-      if (hasSpecial) {
-        value = value.replace(/[^A-Z0-9]/g, "");
-      }
-      
-      // Si ya hay un número y se intenta agregar otro, no permitir
-      if (numCount > 1) {
-        value = value.replace(/\d/g, (match, offset) => {
-          return offset === value.indexOf(value.match(/\d/)![0]) ? match : "";
-        });
-      }
-      
-      // Si ya hay una letra y se intenta agregar otra, no permitir
-      if (letterCount > 1) {
-        value = value.replace(/[A-Z]/g, (match, offset) => {
-          return offset === value.indexOf(value.match(/[A-Z]/)![0]) ? match : "";
-        });
-      }
-      
+
+      // Eliminar cualquier carácter no permitido (solo letras y números)
+      value = value.replace(/[^A-Z0-9]/g, "");
+
       // Limitar a 2 caracteres
       if (value.length > 2) {
         value = value.slice(0, 2);
       }
+
+      // Validar formato: primer carácter número, segundo letra
+      const regex = /^[0-9][A-Z]?$/;
+      if (!regex.test(value) && value !== "") {
+        // Si el formato no es válido, limpiar el valor inválido
+        // (por ejemplo, si empieza con letra o tiene dos números)
+        const firstChar = value[0];
+        const secondChar = value[1];
+
+        if (firstChar && isNaN(Number(firstChar))) {
+          // Si el primero no es número, eliminarlo
+          value = value.slice(1);
+        } else if (secondChar && !/[A-Z]/.test(secondChar)) {
+          // Si el segundo no es letra, eliminarlo
+          value = value[0];
+        }
+      }
     }
-    
+
+
     // Limitar carnet según si hay complemento
     if (key === "carnet") {
       const maxCarnetLength = form.complemento ? 7 : 8;
@@ -71,11 +68,11 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
         value = value.slice(0, maxCarnetLength);
       }
     }
-    
+
     setForm(prev => ({ ...prev, [key]: value }));
 
     const campo = campos.find(c => c.key === key);
-    
+
     // Para carnet, necesitamos pasar el complemento actual
     if (key === "carnet") {
       const errorCarnet = validarCarnetConComplemento(value, form.complemento);
@@ -85,8 +82,8 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
     else if (key === "complemento") {
       const errorComplemento = campo?.validator(value) ?? "";
       const errorCarnet = validarCarnetConComplemento(form.carnet, value);
-      setErrores(prev => ({ 
-        ...prev, 
+      setErrores(prev => ({
+        ...prev,
         complemento: errorComplemento,
         carnet: errorCarnet ?? ""
       }));
