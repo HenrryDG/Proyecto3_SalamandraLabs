@@ -7,6 +7,7 @@ import { Empleado } from "../../../types/empleado";
 import { roles } from "../../../shared";
 import { useUpdateEmpleado } from "../../../hooks/empleado/useUpdateEmpleado";
 import { useToggleEmpleado } from "../../../hooks/empleado/useToggleEmpleado";
+import ConfirmacionModal from "../confirmacionModal";
 
 import {
   camposEdit,
@@ -85,6 +86,8 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
     }
   };
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
       <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
@@ -148,11 +151,23 @@ export default function EditEmpleadoModal({ isOpen, onClose, empleado, onUpdated
             {isToggling ? "Procesando..." : empleado?.activo ? "Deshabilitar" : "Habilitar"}
           </Button>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isUpdating || hayErrores}>
+          <Button variant="primary" onClick={() => setConfirmOpen(true)} disabled={isUpdating || hayErrores}>
             {isUpdating ? "Actualizando..." : "Guardar Cambios"}
           </Button>
         </div>
       </div>
+      <ConfirmacionModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void handleSubmit();
+        }}
+        title="¿Deseas guardar los cambios realizados?"
+        confirmLabel="Guardar"
+        cancelLabel="Cancelar"
+        isPending={isUpdating}
+      />
     </Modal>
   );
 }
