@@ -6,6 +6,7 @@ import TextArea from "../../form/input/TextArea";
 import ClienteSearchSelect from "../../form/ClienteSearchSelect";
 import { Modal } from "../../ui/modal";
 import { SolicitudDTO } from "../../form/configs/solicitudFormConfig";
+import ConfirmacionModal from "../confirmacionModal";
 
 import {
     campos,
@@ -21,6 +22,9 @@ interface Props {
 
 export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Props) {
     const { mutate, isPending } = useCreateSolicitud();
+
+    // Estado para mostrar modal de confirmación
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     // Estado inicial vacío
     const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
@@ -44,10 +48,14 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
         Object.values(errores).some(e => e !== "") ||
         camposObligatorios.some(key => form[key] === "");
 
-    // Maneja el envío del formulario
+    // Abrir modal de confirmación antes de crear
     const handleSubmit = () => {
         if (hayErrores) return;
+        setConfirmOpen(true);
+    };
 
+    // Ejecuta la creación después de confirmar
+    const handleConfirmCreate = () => {
         // Preparar datos (convertir números)
         const data: SolicitudDTO = {
             ...form,
@@ -58,10 +66,15 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
         // Llamar a la mutación para crear la solicitud
         mutate(data, {
             onSuccess: () => {
+                setConfirmOpen(false);
                 onClose();
                 onCreated?.();
                 setForm(initialForm);
                 setErrores(initialForm);
+            },
+            onError: () => {
+                // Cerrar confirmación pero dejar el formulario para corregir
+                setConfirmOpen(false);
             },
         });
     };
@@ -178,6 +191,12 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
                     </Button>
                 </div>
             </div>
+            <ConfirmacionModal
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleConfirmCreate}
+                isPending={isPending}
+            />
         </Modal>
     );
 }
