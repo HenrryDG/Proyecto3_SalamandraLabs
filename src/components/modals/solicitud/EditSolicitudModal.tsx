@@ -7,6 +7,7 @@ import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
 import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud";
+import ConfirmacionModal from "../confirmacionModal";
 
 // Configuración de campos reutilizable
 import {
@@ -33,6 +34,8 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     const [form, setForm] = useState(initialForm);
     const [errores, setErrores] = useState(initialForm);
     const { toggle, isToggling } = useToggleSolicitud();
+    // Estado para mostrar confirmación antes de actualizar
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
 
     // Cargar datos de la solicitud al abrir el modal
@@ -66,9 +69,15 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         Object.values(errores).some(e => e !== "") ||
         camposObligatorios.some(key => form[key] === "");
 
-    // Maneja el envío del formulario
-    const handleSubmit = async () => {
+    // Abrir modal de confirmación antes de ejecutar la actualización
+    const handleSubmit = () => {
         if (!solicitud || hayErrores) return;
+        setConfirmOpen(true);
+    };
+
+    // Ejecuta la actualización después de confirmar
+    const handleConfirmUpdate = async () => {
+        if (!solicitud) return;
 
         // Preparar datos actualizados
         const data: Solicitud = {
@@ -83,8 +92,11 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         // Ejecutar actualización
         const updated = await update(data);
         if (updated) {
+            setConfirmOpen(false);
             onClose();
             onUpdated?.();
+        } else {
+            setConfirmOpen(false);
         }
     };
 
@@ -281,6 +293,12 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         )}
                     </div>
                 </div>
+                <ConfirmacionModal
+                    isOpen={confirmOpen}
+                    onClose={() => setConfirmOpen(false)}
+                    onConfirm={handleConfirmUpdate}
+                    isPending={isUpdating}
+                />
             </div>
         </Modal>
     );
