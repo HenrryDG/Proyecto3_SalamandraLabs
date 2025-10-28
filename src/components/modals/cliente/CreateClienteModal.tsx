@@ -4,6 +4,7 @@ import Button from "../../ui/button/Button";
 import Input from "../../form/input/InputField";
 import { Modal } from "../../ui/modal";
 import { ClienteDTO } from "../../../types/cliente";
+import ConfirmacionModal from "../confirmacionModal";
 
 import {
   campos,
@@ -107,18 +108,25 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
     (!form.apellido_paterno && !form.apellido_materno) ||    // al menos un apellido
     campos.some(c => c.validator(form[c.key]) !== null && c.key !== "apellido_paterno" && c.key !== "apellido_materno"); // validaciones de formato
 
-  const handleSubmit = () => {
-    if (hayErrores) return;
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const handleSaveClick = () => {
+    if (hayErrores) return;
+    setConfirmOpen(true);
+  };
+
+  const onConfirm = () => {
     const data: ClienteDTO = { ...form, telefono: Number(form.telefono) };
 
     mutate(data, {
       onSuccess: () => {
+        setConfirmOpen(false);
         onClose();
         onCreated?.();
         setForm(initialForm);
         setErrores(initialForm);
       },
+      onError: () => setConfirmOpen(false),
     });
   };
 
@@ -159,11 +167,20 @@ export default function CreateClienteModal({ isOpen, onClose, onCreated }: Props
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isPending || hayErrores}>
+          <Button variant="primary" onClick={handleSaveClick} disabled={isPending || hayErrores}>
             {isPending ? "Guardando..." : "Guardar"}
           </Button>
         </div>
       </div>
+      <ConfirmacionModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={onConfirm}
+        title="¿Deseas registrar este nuevo cliente?"
+        confirmLabel="Registrar"
+        cancelLabel="Cancelar"
+        isPending={isPending}
+      />
     </Modal>
   );
 }
