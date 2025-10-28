@@ -36,6 +36,9 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     const { toggle, isToggling } = useToggleSolicitud();
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
+    // Estados para confirmar aprobar/rechazar
+    const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
+    const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
 
 
     // Cargar datos de la solicitud al abrir el modal
@@ -100,15 +103,33 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         }
     };
 
-    // Maneja el cambio de estado de la solicitud
+    // Maneja el cambio de estado de la solicitud (uso interno)
     const handleCambiarEstado = async (nuevoEstado: "Aprobada" | "Rechazada") => {
-        if (!solicitud) return;
+        if (!solicitud) return false;
 
         const ok = await toggle(solicitud.id, nuevoEstado);
         if (ok) {
             onClose();
             onUpdated?.();
+            return true;
         }
+        return false;
+    };
+
+    // Confirmaciones específicas para aprobar/rechazar usando el modal
+    const handleConfirmApprove = async () => {
+        if (!solicitud) return;
+        // Mantener el modal abierto mientras isToggling === true (isPending)
+        const ok = await handleCambiarEstado("Aprobada");
+        setApproveConfirmOpen(false);
+        return ok;
+    };
+
+    const handleConfirmReject = async () => {
+        if (!solicitud) return;
+        const ok = await handleCambiarEstado("Rechazada");
+        setRejectConfirmOpen(false);
+        return ok;
     };
 
     // Determinar si la solicitud está rechazada
@@ -253,7 +274,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             <div className="w-full sm:w-auto">
                                 <Button
                                     variant="success"
-                                    onClick={() => handleCambiarEstado("Aprobada")}
+                                    onClick={() => setApproveConfirmOpen(true)}
                                     disabled={isToggling}
                                     className="w-full"
                                 >
@@ -263,7 +284,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                             <div className="w-full sm:w-auto">
                                 <Button
                                     variant="error"
-                                    onClick={() => handleCambiarEstado("Rechazada")}
+                                    onClick={() => setRejectConfirmOpen(true)}
                                     disabled={isToggling}
                                     className="w-full"
                                 >
@@ -298,6 +319,29 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     onClose={() => setConfirmOpen(false)}
                     onConfirm={handleConfirmUpdate}
                     isPending={isUpdating}
+                />
+                {/* Confirmación para aprobar */}
+                <ConfirmacionModal
+                    isOpen={approveConfirmOpen}
+                    onClose={() => setApproveConfirmOpen(false)}
+                    onConfirm={handleConfirmApprove}
+                    title="¿Desea aprobar la solicitud de crédito?"
+                    description={"Esta acción cambiará el estado de la solicitud a Aprobada."}
+                    confirmLabel="Aprobar"
+                    cancelLabel="Cancelar"
+                    isPending={isToggling}
+                />
+
+                {/* Confirmación para rechazar */}
+                <ConfirmacionModal
+                    isOpen={rejectConfirmOpen}
+                    onClose={() => setRejectConfirmOpen(false)}
+                    onConfirm={handleConfirmReject}
+                    title="¿Desea rechazar la solicitud de crédito?"
+                    description={"Esta acción cambiará el estado de la solicitud a Rechazada."}
+                    confirmLabel="Rechazar"
+                    cancelLabel="Cancelar"
+                    isPending={isToggling}
                 />
             </div>
         </Modal>
