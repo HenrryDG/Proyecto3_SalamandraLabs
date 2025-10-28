@@ -6,6 +6,7 @@ import Select from "../../form/Select";
 import { Modal } from "../../ui/modal";
 import { EmpleadoDTO } from "../../../types/empleado";
 import { roles } from "../../../shared";
+import ConfirmacionModal from "../confirmacionModal";
 
 import {
   campos,
@@ -62,18 +63,27 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
     (!form.apellido_paterno && !form.apellido_materno) ||
     campos.some(c => c.validator(form[c.key]) !== null && c.key !== "apellido_paterno" && c.key !== "apellido_materno");
 
-  const handleSubmit = () => {
-    if (hayErrores) return;
+  
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleSaveClick = () => {
+    if (hayErrores) return;
+    setConfirmOpen(true);
+  };
+
+  const onConfirm = () => {
     const data: EmpleadoDTO = { ...form, telefono: Number(form.telefono) };
 
     mutate(data, {
       onSuccess: () => {
+        setConfirmOpen(false);
         onClose();
         onCreated?.();
         setForm(initialForm);
         setErrores(initialForm);
       },
+      onError: () => setConfirmOpen(false),
     });
   };
 
@@ -126,11 +136,20 @@ export default function CreateEmpleadoModal({ isOpen, onClose, onCreated }: Prop
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isPending || hayErrores}>
+          <Button variant="primary" onClick={handleSaveClick} disabled={isPending || hayErrores}>
             {isPending ? "Guardando..." : "Guardar"}
           </Button>
         </div>
       </div>
+      <ConfirmacionModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={onConfirm}
+        title="¿Deseas registrar este nuevo empleado?"
+        confirmLabel="Registrar"
+        cancelLabel="Cancelar"
+        isPending={isPending}
+      />
     </Modal>
   );
 }

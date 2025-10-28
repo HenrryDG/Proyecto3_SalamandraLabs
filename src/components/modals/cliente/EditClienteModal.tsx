@@ -5,6 +5,7 @@ import Button from "../../ui/button/Button";
 import { Cliente } from "../../../types/cliente";
 import { useUpdateCliente } from "../../../hooks/cliente/useUpdateCliente";
 import { useToggleCliente } from "../../../hooks/cliente/useToggleCliente";
+import ConfirmacionModal from "../confirmacionModal";
 
 // Configuración de campos reutilizable
 import {
@@ -150,6 +151,8 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
     }
   };
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
       <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
@@ -202,13 +205,25 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button
             variant="primary"
-            onClick={handleSubmit}
+            onClick={() => setConfirmOpen(true)}
             disabled={isUpdating || hayErrores}
           >
             {isUpdating ? "Actualizando..." : "Guardar Cambios"}
           </Button>
         </div>
       </div>
+      <ConfirmacionModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void handleSubmit();
+        }}
+        title="¿Deseas guardar los cambios realizados?"
+        confirmLabel="Guardar"
+        cancelLabel="Cancelar"
+        isPending={isUpdating}
+      />
     </Modal>
   );
 }
