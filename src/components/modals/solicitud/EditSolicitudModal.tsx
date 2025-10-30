@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Modal } from "../../ui/modal";
 import Input from "../../form/input/InputField";
 import TextArea from "../../form/input/TextArea";
-import ClienteSearchSelect from "../../form/ClienteSearchSelect";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
@@ -141,7 +140,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
                     {isRechazada ? "Solicitud Rechazada" : isAprobada ? "Solicitud Aprobada" : "Editar Solicitud de Préstamo"}
-                    
+
                 </h2>
 
                 {/* Formulario de edición */}
@@ -151,32 +150,24 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Cliente
                         </label>
-                        <ClienteSearchSelect
-                            value={form.cliente}
-                            onChange={(value) => {
-                                setForm(prev => ({ ...prev, cliente: value }));
-                                setErrores(prev => ({ ...prev, cliente: "" }));
-                            }}
-                            placeholder="Buscar cliente..."
-                            error={!!errores.cliente}
-                            hint={errores.cliente}
-                            disabled={isRechazada || isAprobada}
+                        <input
+                            type="text"
+                            value={solicitud?.cliente_nombre || ""}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
-                    <Input
-                        label="Monto Solicitado"
-                        type="text"
-                        value={form.monto_solicitado}
-                        onChange={handleInputChange("monto_solicitado")}
-                        error={!!errores.monto_solicitado}
-                        hint={errores.monto_solicitado}
-                        inputMode="decimal"
-                        decimal={true}
-                        maxIntegerDigits={6}
-                        maxDecimalDigits={2}
-                        placeholder="0.00"
-                        disabled={isRechazada || isAprobada}
-                    />
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Monto Solicitado
+                        </label>
+                        <input
+                            type="text"
+                            value={form.monto_solicitado}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
                 </div>
 
                 {/* Proposito */}
@@ -308,7 +299,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                                     disabled={isUpdating || hayErrores || isToggling}
                                     className="w-full"
                                 >
-                                    {isUpdating ? "Actualizando..." : "Guardar Cambios"}
+                                    {isUpdating ? "Actualizando..." : "Guardar"}
                                 </Button>
                             </div>
                         )}
