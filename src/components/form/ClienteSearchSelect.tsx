@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useClientes } from "../../hooks/cliente/useClientes";
+import { useClientesHabilitados } from "../../hooks/cliente/useClientesHabilitados";
 import { Cliente } from "../../types/cliente";
 import { ChevronDownIcon } from "../../icons";
 
@@ -20,7 +20,7 @@ export default function ClienteSearchSelect({
     hint,
     disabled = false,
 }: ClienteSearchSelectProps) {
-    const { clientes, loading } = useClientes();
+    const { clientes, loading } = useClientesHabilitados();
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
