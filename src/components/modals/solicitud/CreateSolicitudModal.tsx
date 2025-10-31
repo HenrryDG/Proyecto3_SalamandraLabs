@@ -60,7 +60,6 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
         const data: SolicitudDTO = {
             ...form,
             cliente: Number(form.cliente),
-            plazo_meses: Number(form.plazo_meses),
         };
 
         // Llamar a la mutación para crear la solicitud
@@ -132,20 +131,6 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
 
                 {/* Plazo | Monto Solicitado */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div className="flex-1">
-                        <Input
-                            label="Plazo (meses)"
-                            type="text"
-                            value={form.plazo_meses}
-                            onChange={handleInputChange("plazo_meses")}
-                            error={!!errores.plazo_meses}
-                            hint={errores.plazo_meses}
-                            inputMode="numeric"
-                            digitsOnly={true}
-                            maxLength={2}
-                            placeholder="0"
-                        />
-                    </div>
                     <div className="flex-1">
                         <Input
                             label="Monto Solicitado"
