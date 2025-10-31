@@ -10,7 +10,6 @@ import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud"
 import { getDocumentos } from "../../../services/documento/documentoService";
 import ConfirmacionModal from "../confirmacionModal";
 import { TrashBinIcon } from "../../../icons";
-import { getClienteById } from "../../../services/cliente/clienteService";
 
 // Configuración de campos reutilizable
 import {
@@ -74,8 +73,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     const [errores, setErrores] = useState(initialForm);
     // Estado para documentos
     const [documentos, setDocumentos] = useState<Documento[]>([]);
-    // Ingreso mensual del cliente 
-    const [ingresoMensual, setIngresoMensual] = useState<string>("");
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
     // Estados para confirmar aprobar/rechazar
@@ -108,21 +105,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 }
             };
             fetchDocumentos();
-
-            // Cargar ingreso mensual del cliente
-            const fetchCliente = async () => {
-                try {
-                    const cliente = await getClienteById(solicitud.cliente);
-                    setIngresoMensual(
-                        cliente.ingreso_mensual !== undefined && cliente.ingreso_mensual !== null
-                            ? String(cliente.ingreso_mensual)
-                            : ""
-                    );
-                } catch (error) {
-                    setIngresoMensual("");
-                }
-            };
-            fetchCliente();
         }
     }, [solicitud]);
 
@@ -254,7 +236,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         </label>
                         <input
                             type="text"
-                            value={formatCurrency(ingresoMensual)}
+                            value={formatCurrency(solicitud?.cliente_ingreso_mensual || "")}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
@@ -280,6 +262,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         </label>
                         <input
                             type="text"
+                            value={solicitud?.monto_aprobado ? formatCurrency(solicitud.monto_aprobado) : "N/A"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
