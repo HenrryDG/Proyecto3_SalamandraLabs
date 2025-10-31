@@ -195,7 +195,8 @@ layer(base);
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  /* Use primary color (sky) for selected sidebar items so they match Button's primary */
+  @apply bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-500;
 }
 
 @utility menu-item-inactive {
@@ -207,7 +208,7 @@ layer(base);
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply text-sky-600 dark:text-sky-500;
 }
 
 @utility menu-item-icon-size {
@@ -225,7 +226,8 @@ layer(base);
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  /* Use primary (sky) color for the arrow when submenu is open */
+  @apply rotate-180 text-sky-600 dark:text-sky-500;
 }
 
 @utility menu-item-arrow-inactive {
@@ -237,7 +239,7 @@ layer(base);
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-500;
 }
 
 @utility menu-dropdown-item-inactive {
@@ -249,7 +251,7 @@ layer(base);
 }
 
 @utility menu-dropdown-badge-active {
-  @apply bg-brand-100 dark:bg-brand-500/20;
+  @apply bg-sky-100 dark:bg-sky-500/20;
 }
 
 @utility menu-dropdown-badge-inactive {
