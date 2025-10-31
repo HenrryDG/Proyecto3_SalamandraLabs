@@ -14,6 +14,12 @@ export const getClientesHabilitados = async (): Promise<Cliente[]> => {
     const response = await api.get<Cliente[]>("/clientes/habilitados/");
     return response.data;
 }
+// * === SERVICIO PARA OBTENER UN CLIENTE POR ID === * //
+
+export const getClienteById = async (id: number): Promise<Cliente> => {
+    const response = await api.get<Cliente>(`/clientes/${id}/`);
+    return response.data;
+}
 
 // * === SERVICIO PARA INSERTAR UN NUEVO CLIENTE === * //
 

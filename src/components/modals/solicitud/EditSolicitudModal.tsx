@@ -10,6 +10,7 @@ import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud"
 import { getDocumentos } from "../../../services/documento/documentoService";
 import ConfirmacionModal from "../confirmacionModal";
 import { TrashBinIcon } from "../../../icons";
+import { getClienteById } from "../../../services/cliente/clienteService";
 
 // Configuración de campos reutilizable
 import {
@@ -26,6 +27,40 @@ interface Props {
 }
 
 export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdated }: Props) {
+    // Helper para formatear montos con comas y puntos decimales
+    const formatCurrency = (value: string | number | null | undefined) => {
+        if (value === null || value === undefined) return "";
+        const toNumber = (val: string | number) => {
+            if (typeof val === "number") return val;
+            const s = String(val).trim();
+            if (s === "") return NaN;
+            const lastComma = s.lastIndexOf(",");
+            const lastDot = s.lastIndexOf(".");
+            // Detecta el separador decimal por el último separador presente
+            if (lastComma > lastDot) {
+                // Formato tipo 1.234,56 -> 1234.56
+                const cleaned = s
+                    .replace(/\./g, "")
+                    .replace(/,/g, ".")
+                    .replace(/[^\d.-]/g, "");
+                return Number(cleaned);
+            } else {
+                // Formato tipo 1,234.56 o 1234.56 -> 1234.56
+                const cleaned = s
+                    .replace(/,/g, "")
+                    .replace(/[^\d.-]/g, "");
+                return Number(cleaned);
+            }
+        };
+
+        const num = toNumber(value);
+        if (Number.isNaN(num)) return String(value);
+        return num.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
     const { update, isUpdating } = useUpdateSolicitud();
     const { toggle, isToggling } = useToggleSolicitud();
     const { deleteSol, isDeleting } = useDeleteSolicitud();
@@ -39,6 +74,8 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     const [errores, setErrores] = useState(initialForm);
     // Estado para documentos
     const [documentos, setDocumentos] = useState<Documento[]>([]);
+    // Ingreso mensual del cliente 
+    const [ingresoMensual, setIngresoMensual] = useState<string>("");
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
     // Estados para confirmar aprobar/rechazar
@@ -71,6 +108,21 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 }
             };
             fetchDocumentos();
+
+            // Cargar ingreso mensual del cliente
+            const fetchCliente = async () => {
+                try {
+                    const cliente = await getClienteById(solicitud.cliente);
+                    setIngresoMensual(
+                        cliente.ingreso_mensual !== undefined && cliente.ingreso_mensual !== null
+                            ? String(cliente.ingreso_mensual)
+                            : ""
+                    );
+                } catch (error) {
+                    setIngresoMensual("");
+                }
+            };
+            fetchCliente();
         }
     }, [solicitud]);
 
@@ -183,7 +235,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 </h2>
 
                 {/* Formulario de edición */}
-                {/* Cliente | Monto Solicitado */}
+                {/* Cliente | Ingreso Mensual */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -198,11 +250,36 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     </div>
                     <div className="space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Ingreso Mensual
+                        </label>
+                        <input
+                            type="text"
+                            value={formatCurrency(ingresoMensual)}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
+                </div>
+
+                {/* Monto Solicitado | Monto Aprobado */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Monto Solicitado
                         </label>
                         <input
                             type="text"
-                            value={form.monto_solicitado}
+                            value={formatCurrency(form.monto_solicitado)}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Monto Aprobado
+                        </label>
+                        <input
+                            type="text"
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
@@ -237,6 +314,16 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                     <div className="flex-1 space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Plazo Meses
+                        </label>
+                        <input
+                            type="text"
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Fecha de Solicitud
                         </label>
                         <input
@@ -248,15 +335,27 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     </div>
                     <div className="flex-1 space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Fecha de Resolución
+                            Fecha de Plazo 
                         </label>
                         <input
                             type="text"
-                            value={solicitud?.fecha_aprobacion || "Sin resolver"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
+                    {(isAprobada || isRechazada) && (
+                        <div className="flex-1 space-y-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Fecha de Resolución
+                            </label>
+                            <input
+                                type="text"
+                                value={solicitud?.fecha_aprobacion || "Sin resolver"}
+                                disabled
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                            />
+                        </div>
+                    )}
 
                 </div>
 
