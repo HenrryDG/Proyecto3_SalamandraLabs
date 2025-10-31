@@ -8,6 +8,19 @@ export const getClientes = async (): Promise<Cliente[]> => {
     return response.data;
 }
 
+// * === SERVICIO PARA OBTENER CLIENTES HABILITADOS PARA SOLICITAR PRÉSTAMO === * //
+
+export const getClientesHabilitados = async (): Promise<Cliente[]> => {
+    const response = await api.get<Cliente[]>("/clientes/habilitados/");
+    return response.data;
+}
+// * === SERVICIO PARA OBTENER UN CLIENTE POR ID === * //
+
+export const getClienteById = async (id: number): Promise<Cliente> => {
+    const response = await api.get<Cliente>(`/clientes/${id}/`);
+    return response.data;
+}
+
 // * === SERVICIO PARA INSERTAR UN NUEVO CLIENTE === * //
 
 export const createCliente = async (payload: ClienteDTO): Promise<void> => {

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Modal } from "../../ui/modal";
-import Input from "../../form/input/InputField";
 import TextArea from "../../form/input/TextArea";
-import ClienteSearchSelect from "../../form/ClienteSearchSelect";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
+import { Documento } from "../../../types/documento";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
 import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud";
+import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud";
+import { getDocumentos } from "../../../services/documento/documentoService";
 import ConfirmacionModal from "../confirmacionModal";
+import { TrashBinIcon } from "../../../icons";
+import { getClienteById } from "../../../services/cliente/clienteService";
 
 // Configuración de campos reutilizable
 import {
@@ -24,7 +27,43 @@ interface Props {
 }
 
 export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdated }: Props) {
+    // Helper para formatear montos con comas y puntos decimales
+    const formatCurrency = (value: string | number | null | undefined) => {
+        if (value === null || value === undefined) return "";
+        const toNumber = (val: string | number) => {
+            if (typeof val === "number") return val;
+            const s = String(val).trim();
+            if (s === "") return NaN;
+            const lastComma = s.lastIndexOf(",");
+            const lastDot = s.lastIndexOf(".");
+            // Detecta el separador decimal por el último separador presente
+            if (lastComma > lastDot) {
+                // Formato tipo 1.234,56 -> 1234.56
+                const cleaned = s
+                    .replace(/\./g, "")
+                    .replace(/,/g, ".")
+                    .replace(/[^\d.-]/g, "");
+                return Number(cleaned);
+            } else {
+                // Formato tipo 1,234.56 o 1234.56 -> 1234.56
+                const cleaned = s
+                    .replace(/,/g, "")
+                    .replace(/[^\d.-]/g, "");
+                return Number(cleaned);
+            }
+        };
+
+        const num = toNumber(value);
+        if (Number.isNaN(num)) return String(value);
+        return num.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
     const { update, isUpdating } = useUpdateSolicitud();
+    const { toggle, isToggling } = useToggleSolicitud();
+    const { deleteSol, isDeleting } = useDeleteSolicitud();
 
 
     // Estado inicial vacío
@@ -33,12 +72,17 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     // Formulario y errores
     const [form, setForm] = useState(initialForm);
     const [errores, setErrores] = useState(initialForm);
-    const { toggle, isToggling } = useToggleSolicitud();
+    // Estado para documentos
+    const [documentos, setDocumentos] = useState<Documento[]>([]);
+    // Ingreso mensual del cliente 
+    const [ingresoMensual, setIngresoMensual] = useState<string>("");
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
     // Estados para confirmar aprobar/rechazar
     const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
     const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+    // Estado para confirmar eliminación
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
 
     // Cargar datos de la solicitud al abrir el modal
@@ -48,23 +92,56 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 cliente: String(solicitud.cliente),
                 monto_solicitado: solicitud.monto_solicitado,
                 proposito: solicitud.proposito,
-                plazo_meses: String(solicitud.plazo_meses),
                 observaciones: solicitud.observaciones ?? "",
             };
 
             setForm(formData);
             setErrores(initialForm);
+            
+            // Cargar documentos de la solicitud
+            const fetchDocumentos = async () => {
+                try {
+                    const docs = await getDocumentos(solicitud.id);
+                    setDocumentos(docs);
+                } catch (error) {
+                    setDocumentos([]);
+                }
+            };
+            fetchDocumentos();
+
+            // Cargar ingreso mensual del cliente
+            const fetchCliente = async () => {
+                try {
+                    const cliente = await getClienteById(solicitud.cliente);
+                    setIngresoMensual(
+                        cliente.ingreso_mensual !== undefined && cliente.ingreso_mensual !== null
+                            ? String(cliente.ingreso_mensual)
+                            : ""
+                    );
+                } catch (error) {
+                    setIngresoMensual("");
+                }
+            };
+            fetchCliente();
         }
     }, [solicitud]);
 
-    // Maneja cambios en los campos del formulario
-    const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setForm(prev => ({ ...prev, [key]: value }));
 
-        // Validar el campo y actualizar errores
-        const campo = campos.find(c => c.key === key);
-        setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
+    // Verificar si todos los documentos requeridos están subidos y verificados
+    const todosLosDocumentosValidados = () => {
+        if (!solicitud) return false;
+        
+        // Verificar que existe la fotocopia de carnet y está verificada
+        const tieneCarnet = documentos.some(
+            doc => doc.tipo_documento === "Fotocopia de carnet" && doc.verificado
+        );
+        
+        // Verificar que existe al menos una factura verificada
+        const tieneFactura = documentos.some(
+            doc => ["Factura de luz", "Factura de gas", "Factura de agua"].includes(doc.tipo_documento) && doc.verificado
+        );
+        
+        return tieneCarnet && tieneFactura;
     };
 
     // Verifica si hay errores en el formulario
@@ -88,7 +165,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             cliente: Number(form.cliente),
             monto_solicitado: form.monto_solicitado,
             proposito: form.proposito,
-            plazo_meses: Number(form.plazo_meses),
             observaciones: form.observaciones || null,
         };
 
@@ -132,6 +208,20 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         return ok;
     };
 
+    // Confirmación para eliminar la solicitud
+    const handleConfirmDelete = async () => {
+        if (!solicitud) return;
+        const ok = await deleteSol(solicitud.id);
+        if (ok) {
+            setDeleteConfirmOpen(false);
+            onClose();
+            onUpdated?.();
+            return true;
+        }
+        setDeleteConfirmOpen(false);
+        return false;
+    };
+
     // Determinar si la solicitud está rechazada
     const isRechazada = solicitud?.estado === "Rechazada";
     const isAprobada = solicitud?.estado === "Aprobada";
@@ -141,42 +231,59 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
                     {isRechazada ? "Solicitud Rechazada" : isAprobada ? "Solicitud Aprobada" : "Editar Solicitud de Préstamo"}
-                    
+
                 </h2>
 
                 {/* Formulario de edición */}
-                {/* Cliente | Monto Solicitado */}
+                {/* Cliente | Ingreso Mensual */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Cliente
                         </label>
-                        <ClienteSearchSelect
-                            value={form.cliente}
-                            onChange={(value) => {
-                                setForm(prev => ({ ...prev, cliente: value }));
-                                setErrores(prev => ({ ...prev, cliente: "" }));
-                            }}
-                            placeholder="Buscar cliente..."
-                            error={!!errores.cliente}
-                            hint={errores.cliente}
-                            disabled={isRechazada || isAprobada}
+                        <input
+                            type="text"
+                            value={solicitud?.cliente_nombre || ""}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
-                    <Input
-                        label="Monto Solicitado"
-                        type="text"
-                        value={form.monto_solicitado}
-                        onChange={handleInputChange("monto_solicitado")}
-                        error={!!errores.monto_solicitado}
-                        hint={errores.monto_solicitado}
-                        inputMode="decimal"
-                        decimal={true}
-                        maxIntegerDigits={6}
-                        maxDecimalDigits={2}
-                        placeholder="0.00"
-                        disabled={isRechazada || isAprobada}
-                    />
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Ingreso Mensual
+                        </label>
+                        <input
+                            type="text"
+                            value={formatCurrency(ingresoMensual)}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
+                </div>
+
+                {/* Monto Solicitado | Monto Aprobado */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Monto Solicitado
+                        </label>
+                        <input
+                            type="text"
+                            value={formatCurrency(form.monto_solicitado)}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Monto Aprobado
+                        </label>
+                        <input
+                            type="text"
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                        />
+                    </div>
                 </div>
 
                 {/* Proposito */}
@@ -205,19 +312,14 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
 
                 {/* Fecha de Solicitud | Fecha de Aprobación */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div className="flex-1">
-                        <Input
-                            label="Plazo (meses)"
+                    <div className="flex-1 space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Plazo Meses
+                        </label>
+                        <input
                             type="text"
-                            value={form.plazo_meses}
-                            onChange={handleInputChange("plazo_meses")}
-                            error={!!errores.plazo_meses}
-                            hint={errores.plazo_meses}
-                            inputMode="numeric"
-                            digitsOnly={true}
-                            maxLength={2}
-                            placeholder="0"
-                            disabled={isRechazada || isAprobada}
+                            disabled
+                            className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
                     <div className="flex-1 space-y-1">
@@ -233,15 +335,27 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     </div>
                     <div className="flex-1 space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Fecha de Resolución
+                            Fecha de Plazo 
                         </label>
                         <input
                             type="text"
-                            value={solicitud?.fecha_aprobacion || "Sin resolver"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
                     </div>
+                    {(isAprobada || isRechazada) && (
+                        <div className="flex-1 space-y-1">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Fecha de Resolución
+                            </label>
+                            <input
+                                type="text"
+                                value={solicitud?.fecha_aprobacion || "Sin resolver"}
+                                disabled
+                                className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
+                            />
+                        </div>
+                    )}
 
                 </div>
 
@@ -273,24 +387,39 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
                             <div className="w-full sm:w-auto">
                                 <Button
-                                    variant="success"
-                                    onClick={() => setApproveConfirmOpen(true)}
-                                    disabled={isToggling}
-                                    className="w-full"
+                                    variant="outline"
+                                    onClick={() => setDeleteConfirmOpen(true)}
+                                    disabled={isDeleting || isToggling}
+                                    title="Eliminar solicitud"
+                                    className="!w-11 !px-0"
                                 >
-                                    {isToggling ? "Procesando..." : "Aprobar"}
+                                    <TrashBinIcon className="size-5 text-red-500" />
                                 </Button>
                             </div>
-                            <div className="w-full sm:w-auto">
-                                <Button
-                                    variant="error"
-                                    onClick={() => setRejectConfirmOpen(true)}
-                                    disabled={isToggling}
-                                    className="w-full"
-                                >
-                                    {isToggling ? "Procesando..." : "Rechazar"}
-                                </Button>
-                            </div>
+                            {todosLosDocumentosValidados() && (
+                                <>
+                                    <div className="w-full sm:w-auto">
+                                        <Button
+                                            variant="success"
+                                            onClick={() => setApproveConfirmOpen(true)}
+                                            disabled={isToggling || isDeleting}
+                                            className="w-full"
+                                        >
+                                            {isToggling ? "Procesando..." : "Aprobar"}
+                                        </Button>
+                                    </div>
+                                    <div className="w-full sm:w-auto">
+                                        <Button
+                                            variant="error"
+                                            onClick={() => setRejectConfirmOpen(true)}
+                                            disabled={isToggling || isDeleting}
+                                            className="w-full"
+                                        >
+                                            {isToggling ? "Procesando..." : "Rechazar"}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
@@ -305,10 +434,10 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                                 <Button
                                     variant="primary"
                                     onClick={handleSubmit}
-                                    disabled={isUpdating || hayErrores || isToggling}
+                                    disabled={isUpdating || hayErrores || isToggling || isDeleting}
                                     className="w-full"
                                 >
-                                    {isUpdating ? "Actualizando..." : "Guardar Cambios"}
+                                    {isUpdating ? "Actualizando..." : "Guardar"}
                                 </Button>
                             </div>
                         )}
@@ -342,6 +471,18 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     confirmLabel="Rechazar"
                     cancelLabel="Cancelar"
                     isPending={isToggling}
+                />
+
+                {/* Confirmación para eliminar */}
+                <ConfirmacionModal
+                    isOpen={deleteConfirmOpen}
+                    onClose={() => setDeleteConfirmOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    title="¿Desea eliminar la solicitud de crédito?"
+                    description={"Esta acción eliminará permanentemente la solicitud y todos sus documentos asociados."}
+                    confirmLabel="Eliminar"
+                    cancelLabel="Cancelar"
+                    isPending={isDeleting}
                 />
             </div>
         </Modal>

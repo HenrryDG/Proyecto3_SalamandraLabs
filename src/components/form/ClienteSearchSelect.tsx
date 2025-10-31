@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useClientes } from "../../hooks/cliente/useClientes";
+import { useClientesHabilitados } from "../../hooks/cliente/useClientesHabilitados";
 import { Cliente } from "../../types/cliente";
 import { ChevronDownIcon } from "../../icons";
 
@@ -20,23 +20,25 @@ export default function ClienteSearchSelect({
     hint,
     disabled = false,
 }: ClienteSearchSelectProps) {
-    const { clientes, loading } = useClientes();
+    const { clientes, loading } = useClientesHabilitados();
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Filtrar clientes basado en el término de búsqueda
+    // Filtrar clientes basado en el término de búsqueda (nombre completo o carnet)
     useEffect(() => {
         if (!searchTerm) {
             setFilteredClientes(clientes);
         } else {
-            const filtered = clientes.filter((cliente) =>
-                `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno}`
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase())
-            );
+            const term = searchTerm.toLowerCase();
+            const filtered = clientes.filter((cliente) => {
+                const nombreCompleto = `${cliente.nombre} ${cliente.apellido_paterno} ${cliente.apellido_materno}`.toLowerCase();
+                const carnetCompleto = `${cliente.carnet}${cliente.complemento || ""}`.toLowerCase();
+                
+                return nombreCompleto.includes(term) || carnetCompleto.includes(term);
+            });
             setFilteredClientes(filtered);
         }
     }, [searchTerm, clientes]);
@@ -126,7 +128,7 @@ export default function ClienteSearchSelect({
                         <div
                             className="overflow-y-auto no-scrollbar"
                             style={{
-                                maxHeight: `${Math.min(filteredClientes.length, 3) * 48}px`,
+                                maxHeight: `${Math.min(filteredClientes.length, 3) * 52}px`,
                             }}
                         >
                             {filteredClientes.map((cliente) => (
@@ -136,7 +138,14 @@ export default function ClienteSearchSelect({
                                     onClick={() => handleSelect(cliente)}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                                 >
-                                    {cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}
+                                    <div className="flex flex-col">
+                                        <span className="font-medium">
+                                            {cliente.nombre} {cliente.apellido_paterno} {cliente.apellido_materno}
+                                        </span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            CI: {cliente.carnet}{cliente.complemento || ""}
+                                        </span>
+                                    </div>
                                 </button>
                             ))}
                         </div>
