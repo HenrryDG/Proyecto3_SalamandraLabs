@@ -1,13 +1,11 @@
 import {
     validarMontoSolicitado,
-    validarPlazoMeses
 } from "../../utils/validaciones";
 
 export interface SolicitudDTO {
     cliente: number;
     monto_solicitado: string;
     proposito: string;
-    plazo_meses: number;
     observaciones?: string;
 }
 
@@ -32,7 +30,6 @@ export const campos: {
                 return null;
             }
         },
-        { key: "plazo_meses", label: "Plazo (meses)", type: "number", validator: validarPlazoMeses },
         { 
             key: "observaciones", 
             label: "Observaciones", 
@@ -50,7 +47,6 @@ export const maxLengths: Record<FormKeys, number> = {
     cliente: 10,
     monto_solicitado: 20,
     proposito: 500,
-    plazo_meses: 3,
     observaciones: 500,
 };
 

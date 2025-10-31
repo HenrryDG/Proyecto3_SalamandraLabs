@@ -4,7 +4,6 @@ export interface Solicitud {
   cliente_nombre: string;
   monto_solicitado: string;
   proposito: string;
-  plazo_meses: number;
   fecha_solicitud: string; // YYYY-MM-DD
   fecha_aprobacion: string | null; // YYYY-MM-DD or null
   estado: string; // e.g., 'Aprobada', 'Rechazada', 'Pendiente'

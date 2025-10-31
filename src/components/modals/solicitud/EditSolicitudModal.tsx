@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Modal } from "../../ui/modal";
-import Input from "../../form/input/InputField";
 import TextArea from "../../form/input/TextArea";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
@@ -47,7 +46,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                 cliente: String(solicitud.cliente),
                 monto_solicitado: solicitud.monto_solicitado,
                 proposito: solicitud.proposito,
-                plazo_meses: String(solicitud.plazo_meses),
                 observaciones: solicitud.observaciones ?? "",
             };
 
@@ -56,15 +54,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         }
     }, [solicitud]);
 
-    // Maneja cambios en los campos del formulario
-    const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setForm(prev => ({ ...prev, [key]: value }));
-
-        // Validar el campo y actualizar errores
-        const campo = campos.find(c => c.key === key);
-        setErrores(prev => ({ ...prev, [key]: campo?.validator(value) ?? "" }));
-    };
 
     // Verifica si hay errores en el formulario
     const hayErrores =
@@ -87,7 +76,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             cliente: Number(form.cliente),
             monto_solicitado: form.monto_solicitado,
             proposito: form.proposito,
-            plazo_meses: Number(form.plazo_meses),
             observaciones: form.observaciones || null,
         };
 
@@ -196,21 +184,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
 
                 {/* Fecha de Solicitud | Fecha de Aprobación */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div className="flex-1">
-                        <Input
-                            label="Plazo (meses)"
-                            type="text"
-                            value={form.plazo_meses}
-                            onChange={handleInputChange("plazo_meses")}
-                            error={!!errores.plazo_meses}
-                            hint={errores.plazo_meses}
-                            inputMode="numeric"
-                            digitsOnly={true}
-                            maxLength={2}
-                            placeholder="0"
-                            disabled={isRechazada || isAprobada}
-                        />
-                    </div>
                     <div className="flex-1 space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Fecha de Solicitud
