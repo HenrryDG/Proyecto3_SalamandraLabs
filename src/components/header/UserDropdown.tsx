@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { logout } from "../../services/auth/authService";
 import { useNavigate } from "react-router";
