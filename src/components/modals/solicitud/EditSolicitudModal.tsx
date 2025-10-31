@@ -3,9 +3,11 @@ import { Modal } from "../../ui/modal";
 import TextArea from "../../form/input/TextArea";
 import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
+import { Documento } from "../../../types/documento";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
 import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud";
 import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud";
+import { getDocumentos } from "../../../services/documento/documentoService";
 import ConfirmacionModal from "../confirmacionModal";
 import { TrashBinIcon } from "../../../icons";
 
@@ -35,6 +37,8 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     // Formulario y errores
     const [form, setForm] = useState(initialForm);
     const [errores, setErrores] = useState(initialForm);
+    // Estado para documentos
+    const [documentos, setDocumentos] = useState<Documento[]>([]);
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
     // Estados para confirmar aprobar/rechazar
@@ -56,9 +60,37 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
 
             setForm(formData);
             setErrores(initialForm);
+            
+            // Cargar documentos de la solicitud
+            const fetchDocumentos = async () => {
+                try {
+                    const docs = await getDocumentos(solicitud.id);
+                    setDocumentos(docs);
+                } catch (error) {
+                    setDocumentos([]);
+                }
+            };
+            fetchDocumentos();
         }
     }, [solicitud]);
 
+
+    // Verificar si todos los documentos requeridos están subidos y verificados
+    const todosLosDocumentosValidados = () => {
+        if (!solicitud) return false;
+        
+        // Verificar que existe la fotocopia de carnet y está verificada
+        const tieneCarnet = documentos.some(
+            doc => doc.tipo_documento === "Fotocopia de carnet" && doc.verificado
+        );
+        
+        // Verificar que existe al menos una factura verificada
+        const tieneFactura = documentos.some(
+            doc => ["Factura de luz", "Factura de gas", "Factura de agua"].includes(doc.tipo_documento) && doc.verificado
+        );
+        
+        return tieneCarnet && tieneFactura;
+    };
 
     // Verifica si hay errores en el formulario
     const hayErrores =
@@ -265,26 +297,30 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                                     <TrashBinIcon className="size-5 text-red-500" />
                                 </Button>
                             </div>
-                            <div className="w-full sm:w-auto">
-                                <Button
-                                    variant="success"
-                                    onClick={() => setApproveConfirmOpen(true)}
-                                    disabled={isToggling || isDeleting}
-                                    className="w-full"
-                                >
-                                    {isToggling ? "Procesando..." : "Aprobar"}
-                                </Button>
-                            </div>
-                            <div className="w-full sm:w-auto">
-                                <Button
-                                    variant="error"
-                                    onClick={() => setRejectConfirmOpen(true)}
-                                    disabled={isToggling || isDeleting}
-                                    className="w-full"
-                                >
-                                    {isToggling ? "Procesando..." : "Rechazar"}
-                                </Button>
-                            </div>
+                            {todosLosDocumentosValidados() && (
+                                <>
+                                    <div className="w-full sm:w-auto">
+                                        <Button
+                                            variant="success"
+                                            onClick={() => setApproveConfirmOpen(true)}
+                                            disabled={isToggling || isDeleting}
+                                            className="w-full"
+                                        >
+                                            {isToggling ? "Procesando..." : "Aprobar"}
+                                        </Button>
+                                    </div>
+                                    <div className="w-full sm:w-auto">
+                                        <Button
+                                            variant="error"
+                                            onClick={() => setRejectConfirmOpen(true)}
+                                            disabled={isToggling || isDeleting}
+                                            className="w-full"
+                                        >
+                                            {isToggling ? "Procesando..." : "Rechazar"}
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
