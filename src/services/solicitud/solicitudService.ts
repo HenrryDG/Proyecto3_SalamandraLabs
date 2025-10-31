@@ -23,3 +23,9 @@ export const toggleSolicitud = async (id: number, estado: string): Promise<{ men
   const response = await api.patch(`/solicitudes/${id}/`, { estado });
   return response.data;
 }
+
+// * === SERVICIO PARA ELIMINAR UNA SOLICITUD === * //
+export const deleteSolicitud = async (id: number): Promise<{ mensaje: string }> => {
+  const response = await api.delete<{ mensaje: string }>(`/solicitudes/${id}/`);
+  return response.data;
+}

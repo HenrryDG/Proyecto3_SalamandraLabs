@@ -5,7 +5,9 @@ import Button from "../../ui/button/Button";
 import { Solicitud } from "../../../types/solicitud";
 import { useUpdateSolicitud } from "../../../hooks/solicitud/useUpdateSolicitud";
 import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud";
+import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud";
 import ConfirmacionModal from "../confirmacionModal";
+import { TrashBinIcon } from "../../../icons";
 
 // Configuración de campos reutilizable
 import {
@@ -23,6 +25,8 @@ interface Props {
 
 export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdated }: Props) {
     const { update, isUpdating } = useUpdateSolicitud();
+    const { toggle, isToggling } = useToggleSolicitud();
+    const { deleteSol, isDeleting } = useDeleteSolicitud();
 
 
     // Estado inicial vacío
@@ -31,12 +35,13 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     // Formulario y errores
     const [form, setForm] = useState(initialForm);
     const [errores, setErrores] = useState(initialForm);
-    const { toggle, isToggling } = useToggleSolicitud();
     // Estado para mostrar confirmación antes de actualizar
     const [confirmOpen, setConfirmOpen] = useState(false);
     // Estados para confirmar aprobar/rechazar
     const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
     const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+    // Estado para confirmar eliminación
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
 
     // Cargar datos de la solicitud al abrir el modal
@@ -117,6 +122,20 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
         const ok = await handleCambiarEstado("Rechazada");
         setRejectConfirmOpen(false);
         return ok;
+    };
+
+    // Confirmación para eliminar la solicitud
+    const handleConfirmDelete = async () => {
+        if (!solicitud) return;
+        const ok = await deleteSol(solicitud.id);
+        if (ok) {
+            setDeleteConfirmOpen(false);
+            onClose();
+            onUpdated?.();
+            return true;
+        }
+        setDeleteConfirmOpen(false);
+        return false;
     };
 
     // Determinar si la solicitud está rechazada
@@ -237,9 +256,20 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:w-auto">
                             <div className="w-full sm:w-auto">
                                 <Button
+                                    variant="outline"
+                                    onClick={() => setDeleteConfirmOpen(true)}
+                                    disabled={isDeleting || isToggling}
+                                    title="Eliminar solicitud"
+                                    className="!w-11 !px-0"
+                                >
+                                    <TrashBinIcon className="size-5 text-red-500" />
+                                </Button>
+                            </div>
+                            <div className="w-full sm:w-auto">
+                                <Button
                                     variant="success"
                                     onClick={() => setApproveConfirmOpen(true)}
-                                    disabled={isToggling}
+                                    disabled={isToggling || isDeleting}
                                     className="w-full"
                                 >
                                     {isToggling ? "Procesando..." : "Aprobar"}
@@ -249,7 +279,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                                 <Button
                                     variant="error"
                                     onClick={() => setRejectConfirmOpen(true)}
-                                    disabled={isToggling}
+                                    disabled={isToggling || isDeleting}
                                     className="w-full"
                                 >
                                     {isToggling ? "Procesando..." : "Rechazar"}
@@ -269,7 +299,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                                 <Button
                                     variant="primary"
                                     onClick={handleSubmit}
-                                    disabled={isUpdating || hayErrores || isToggling}
+                                    disabled={isUpdating || hayErrores || isToggling || isDeleting}
                                     className="w-full"
                                 >
                                     {isUpdating ? "Actualizando..." : "Guardar"}
@@ -306,6 +336,18 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     confirmLabel="Rechazar"
                     cancelLabel="Cancelar"
                     isPending={isToggling}
+                />
+
+                {/* Confirmación para eliminar */}
+                <ConfirmacionModal
+                    isOpen={deleteConfirmOpen}
+                    onClose={() => setDeleteConfirmOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    title="¿Desea eliminar la solicitud de crédito?"
+                    description={"Esta acción eliminará permanentemente la solicitud y todos sus documentos asociados."}
+                    confirmLabel="Eliminar"
+                    cancelLabel="Cancelar"
+                    isPending={isDeleting}
                 />
             </div>
         </Modal>
