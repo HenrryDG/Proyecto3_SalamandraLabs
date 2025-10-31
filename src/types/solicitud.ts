@@ -2,6 +2,8 @@ export interface Solicitud {
   id: number;
   empleado_nombre: string;
   cliente_nombre: string;
+  cliente_ingreso_mensual?: string; // Ingreso mensual 
+  monto_aprobado?: string | null; // Monto aprobado del préstamo asociado
   monto_solicitado: string;
   proposito: string;
   fecha_solicitud: string; // YYYY-MM-DD
