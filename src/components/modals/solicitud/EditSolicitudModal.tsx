@@ -94,7 +94,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
 
             setForm(formData);
             setErrores(initialForm);
-            
+
             // Cargar documentos de la solicitud
             const fetchDocumentos = async () => {
                 try {
@@ -112,18 +112,23 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
     // Verificar si todos los documentos requeridos están subidos y verificados
     const todosLosDocumentosValidados = () => {
         if (!solicitud) return false;
-        
+
         // Verificar que existe la fotocopia de carnet y está verificada
         const tieneCarnet = documentos.some(
             doc => doc.tipo_documento === "Fotocopia de carnet" && doc.verificado
         );
-        
+
         // Verificar que existe al menos una factura verificada
         const tieneFactura = documentos.some(
             doc => ["Factura de luz", "Factura de gas", "Factura de agua"].includes(doc.tipo_documento) && doc.verificado
         );
-        
-        return tieneCarnet && tieneFactura;
+
+        // Verificar que la boleta de pago está subida y verificada
+        const tieneBoleta = documentos.some(
+            doc => doc.tipo_documento === "Boleta de pago" && doc.verificado
+        );
+
+        return tieneCarnet && tieneFactura && tieneBoleta;
     };
 
     // Verifica si hay errores en el formulario
@@ -301,6 +306,7 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                         </label>
                         <input
                             type="text"
+                            value={solicitud?.plazo_meses || "N/A"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />
@@ -318,10 +324,11 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     </div>
                     <div className="flex-1 space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Fecha de Plazo 
+                            Fecha de Plazo
                         </label>
                         <input
                             type="text"
+                            value={solicitud?.fecha_plazo || "N/A"}
                             disabled
                             className="h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed"
                         />

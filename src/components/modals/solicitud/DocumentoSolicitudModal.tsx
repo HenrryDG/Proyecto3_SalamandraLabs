@@ -4,6 +4,7 @@ import { Solicitud } from "../../../types/solicitud";
 import { useDocumentos } from "../../../hooks/documento/useDocumentos";
 import { useUploadCarnet } from "../../../hooks/documento/useUploadCarnet";
 import { useUploadFactura } from "../../../hooks/documento/useUploadFactura";
+import { useUploadBoleta } from "../../../hooks/documento/useUploadBoleta";
 import { useState } from "react";
 import { toast } from "sonner";
 import DocumentoRow from "../../form/DocumentoRow";
@@ -20,17 +21,21 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
   const { documentos, loading, error, refetch } = useDocumentos(solicitud.id);
   const { uploading: uploadingCarnet, upload: uploadCarnet } = useUploadCarnet(solicitud.id);
   const { uploading: uploadingFactura, upload: uploadFactura } = useUploadFactura(solicitud.id);
+  const { uploading: uploadingBoleta, upload: uploadBoleta } = useUploadBoleta(solicitud.id);
 
   const tiposFactura = ["Factura de agua", "Factura de luz", "Factura de gas"];
   const tipoCarnet = "Fotocopia de carnet";
+  const tipoBoleta = "Boleta de pago";
 
   const documentosSolicitud = documentos.filter(doc => doc.solicitud === solicitud.id);
   const tieneFactura = documentosSolicitud.some(doc => tiposFactura.includes(doc.tipo_documento));
   const tieneCarnet = documentosSolicitud.some(doc => doc.tipo_documento === tipoCarnet);
+  const tieneBoleta = documentosSolicitud.some(doc => doc.tipo_documento === tipoBoleta);
 
   const tiposFaltantes: string[] = [];
   if (!tieneFactura) tiposFaltantes.push("Factura de agua / luz / gas");
   if (!tieneCarnet) tiposFaltantes.push(tipoCarnet);
+  if (!tieneBoleta) tiposFaltantes.push(tipoBoleta);
 
   const [archivos, setArchivos] = useState<{ [key: string]: File | undefined }>({});
 
@@ -48,6 +53,8 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
     try {
       if (tipo === tipoCarnet) {
         await uploadCarnet(file, refetch);
+      } else if (tipo === tipoBoleta) {
+        await uploadBoleta(file, refetch);
       } else {
         const tipoFacturaReal = tipoFactura || tipo;
         await uploadFactura(file, tipoFacturaReal, refetch);
@@ -58,7 +65,7 @@ export default function DocumentosSolicitudModal({ isOpen, onClose, solicitud }:
   };
 
   const isUploading = (tipo: string) =>
-    tipo === tipoCarnet ? uploadingCarnet : uploadingFactura;
+    tipo === tipoCarnet ? uploadingCarnet : tipo === tipoBoleta ? uploadingBoleta : uploadingFactura;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">

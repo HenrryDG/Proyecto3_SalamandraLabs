@@ -52,3 +52,23 @@ export const verificarFacturaOCR = async (
 
   // Nada más: backend responde 200, no JSON
 };
+
+// * === SERVICIO PARA SUBIR LA BOLETA DE PAGO === * //
+export const verificarBoletaOCR = async (
+  file: File,
+  solicitud_id: number
+): Promise<void> => {
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("solicitud_id", solicitud_id.toString());
+  formData.append("tipo_documento", "Boleta de pago");
+  const response = await fetch(import.meta.env.VITE_OCR_URL, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al subir la boleta de pago");
+  } 
+  // Nada más: backend responde 200, no JSON
+};
