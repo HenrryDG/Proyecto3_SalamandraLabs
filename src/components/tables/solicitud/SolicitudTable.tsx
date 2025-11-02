@@ -82,7 +82,7 @@ export default function SolicitudTable({ solicitudes, onEdit, onView }: Props) {
                     {" "}
                   </Button>
 
-                    <Button
+                  <Button
                     variant="outline"
                     size="md"
                     endIcon={<FileIcon className="size-5" />}
@@ -90,9 +90,9 @@ export default function SolicitudTable({ solicitudes, onEdit, onView }: Props) {
                     disabled={solicitud.estado === "Rechazada"}
                     title="Ver Documentos"
                     aria-label="Ver Documentos"
-                    >
+                  >
                     {" "}
-                    </Button>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
