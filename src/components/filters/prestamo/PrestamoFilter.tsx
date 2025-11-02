@@ -1,5 +1,5 @@
 import BusquedaFilter from "../BusquedaFilter";
-import EstadoSolicitudFilter from "./EstadoSolicitudFilter";
+import EstadoPrestamoFilter from "./EstadoPrestamoFilter";
 import FechaFilter from "../FechaFilter";
 
 type Props = {
@@ -9,16 +9,16 @@ type Props = {
   setEstado: (v: string) => void;
   rango: [Date | null, Date | null];
   setRango: (value: [Date | null, Date | null]) => void;
-  child?: React.ReactNode;
+
 };
 
-export default function SolicitudFilter({ filtro, setFiltro, estado, setEstado, rango, setRango, child }: Props) {
+export default function PrestamoFilter({ filtro, setFiltro, estado, setEstado, rango, setRango }: Props) {
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center justify-between mb-5">
       <BusquedaFilter filtro={filtro} onChange={setFiltro} />
-      <FechaFilter rango={rango} onChange={setRango} maxDate={new Date()} />
-      <EstadoSolicitudFilter estado={estado} onChange={setEstado} />
-      {child}
+      <FechaFilter rango={rango} onChange={setRango}  />
+      <EstadoPrestamoFilter estado={estado} onChange={setEstado} />
+
     </div>
   );
 }
