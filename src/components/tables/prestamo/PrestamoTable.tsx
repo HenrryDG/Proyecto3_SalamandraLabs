@@ -78,6 +78,7 @@ export default function PrestamoTable({ prestamos }: Props) {
                                         size="md"
                                         endIcon={<TbReportMoney className="size-5" />}
                                         title="Cuotas"
+                                        onClick={() => console.log(`préstamo: ${prestamo.id}`)}
                                     >
                                         {" "}
                                     </Button>

@@ -13,3 +13,8 @@ export interface Prestamo {
   updated_at: string;
   solicitud: number;
 }
+
+export interface PrestamoDTO {
+  solicitud: number;
+  fecha_desembolso: string;
+}

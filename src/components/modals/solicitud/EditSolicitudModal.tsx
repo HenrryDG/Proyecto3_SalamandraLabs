@@ -9,6 +9,7 @@ import { useToggleSolicitud } from "../../../hooks/solicitud/useToggleSolicitud"
 import { useDeleteSolicitud } from "../../../hooks/solicitud/useDeleteSolicitud";
 import { getDocumentos } from "../../../services/documento/documentoService";
 import ConfirmacionModal from "../confirmacionModal";
+import AprobarSolicitudModal from "../prestamo/AprobarSolicitudModal";
 import { TrashBinIcon } from "../../../icons";
 
 // Configuración de campos reutilizable
@@ -177,15 +178,6 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
             return true;
         }
         return false;
-    };
-
-    // Confirmaciones específicas para aprobar/rechazar usando el modal
-    const handleConfirmApprove = async () => {
-        if (!solicitud) return;
-        // Mantener el modal abierto mientras isToggling === true (isPending)
-        const ok = await handleCambiarEstado("Aprobada");
-        setApproveConfirmOpen(false);
-        return ok;
     };
 
     const handleConfirmReject = async () => {
@@ -440,15 +432,15 @@ export default function EditSolicitudModal({ isOpen, onClose, solicitud, onUpdat
                     isPending={isUpdating}
                 />
                 {/* Confirmación para aprobar */}
-                <ConfirmacionModal
+                <AprobarSolicitudModal
                     isOpen={approveConfirmOpen}
                     onClose={() => setApproveConfirmOpen(false)}
-                    onConfirm={handleConfirmApprove}
-                    title="¿Desea aprobar la solicitud de crédito?"
-                    description={"Esta acción cambiará el estado de la solicitud a Aprobada."}
-                    confirmLabel="Aprobar"
-                    cancelLabel="Cancelar"
-                    isPending={isToggling}
+                    solicitud={solicitud}
+                    onUpdated={() => {
+                        setApproveConfirmOpen(false);
+                        onUpdated?.();
+                        onClose();
+                    }}
                 />
 
                 {/* Confirmación para rechazar */}
