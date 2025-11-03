@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Modal } from "../../ui/modal";
 import Button from "../../ui/button/Button";
+import ConfirmacionModal from "../confirmacionModal";
 import { MetodoPago } from "../../../types/planPago";
 import { FaQrcode, FaMoneyBillWave } from "react-icons/fa";
 
@@ -22,17 +23,26 @@ export default function PagarCuotaModal({
     loading = false,
 }: Props) {
     const [selectedMethod, setSelectedMethod] = useState<MetodoPago | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
     const total = parseFloat(montoCuota) + parseFloat(moraCuota);
+
+    const handleOpenConfirmModal = () => {
+        if (selectedMethod) {
+            setIsConfirmModalOpen(true);
+        }
+    };
 
     const handleConfirm = () => {
         if (selectedMethod) {
             onConfirm(selectedMethod);
+            setIsConfirmModalOpen(false);
         }
     };
 
     const handleClose = () => {
         setSelectedMethod(null);
+        setIsConfirmModalOpen(false);
         onClose();
     };
 
@@ -126,13 +136,25 @@ export default function PagarCuotaModal({
                     </Button>
                     <Button
                         variant="success"
-                        onClick={handleConfirm}
+                        onClick={handleOpenConfirmModal}
                         disabled={!selectedMethod || loading}
                     >
                         {loading ? 'Procesando...' : 'Confirmar Pago'}
                     </Button>
                 </div>
             </div>
+
+            {/* Modal de confirmación */}
+            <ConfirmacionModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirm}
+                title="¿Confirmar el pago de esta cuota?"
+                description={`Método de pago: ${selectedMethod || ''} • Total a pagar: Bs. ${total.toFixed(2)}`}
+                confirmLabel="Confirmar"
+                cancelLabel="Cancelar"
+                isPending={loading}
+            />
         </Modal>
     );
 }
