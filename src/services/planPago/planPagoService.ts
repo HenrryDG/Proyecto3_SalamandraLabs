@@ -10,7 +10,7 @@ export const planPagoService = {
 
     // Actualizar un plan de pago (marcar como pagado y/o cambiar método de pago)
     actualizarPlanPago: async (planId: number, data: PlanPagoActualizacion): Promise<PlanPago> => {
-        const response = await axios.patch(`/plan-pagos/plan-pagos/${planId}/`, data);
+        const response = await axios.patch(`/plan-pagos/${planId}/`, data);
         return response.data;
     },
 };
