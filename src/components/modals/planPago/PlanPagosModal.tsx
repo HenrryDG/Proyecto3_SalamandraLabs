@@ -57,15 +57,19 @@ export default function PlanPagosModal({
             const monto = parseFloat(plan.monto_cuota);
             const mora = parseFloat(plan.mora_cuota);
             
+            acc.totalMora += mora;
+            
             if (plan.estado === 'Pagada') {
                 acc.pagado += monto + mora;
+                acc.cuotasPagadas += 1;
             } else {
                 acc.pendiente += monto + mora;
+                acc.cuotasPendientes += 1;
             }
             
             return acc;
         },
-        { pagado: 0, pendiente: 0 }
+        { pagado: 0, pendiente: 0, totalMora: 0, cuotasPagadas: 0, cuotasPendientes: 0 }
     );
 
     return (
@@ -80,8 +84,9 @@ export default function PlanPagosModal({
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                         Plan de Pagos{clienteNombre ? ` - ${clienteNombre}` : ''}
                     </h2>
+                    
                     {/* Resumen del plan */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total de Cuotas</p>
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -89,8 +94,20 @@ export default function PlanPagosModal({
                             </p>
                         </div>
                         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Total Pagado</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Cuotas Pagadas</p>
                             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                {totales.cuotasPagadas}
+                            </p>
+                        </div>
+                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Cuotas Pendientes</p>
+                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {totales.cuotasPendientes}
+                            </p>
+                        </div>
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total Pagado</p>
+                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                                 Bs. {totales.pagado.toFixed(2)}
                             </p>
                         </div>
@@ -98,6 +115,12 @@ export default function PlanPagosModal({
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</p>
                             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                                 Bs. {totales.pendiente.toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total Mora</p>
+                            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                Bs. {totales.totalMora.toFixed(2)}
                             </p>
                         </div>
                     </div>
