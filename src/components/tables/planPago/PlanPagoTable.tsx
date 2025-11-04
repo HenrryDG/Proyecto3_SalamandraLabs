@@ -61,13 +61,13 @@ export default function PlanPagoTable({ planPagos, onPagar }: Props) {
                         <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                             <TableRow>
                                 <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Cuota #
+                                    #
                                 </TableCell>
                                 <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Fecha Vencimiento
+                                    Fecha Límite
                                 </TableCell>
                                 <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Monto Cuota (Bs.)
+                                    Cuota (Bs.)
                                 </TableCell>
                                 <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">
                                     Mora (Bs.)

@@ -85,8 +85,8 @@ export default function PlanPagosModal({
                         Plan de Pagos{clienteNombre ? ` - ${clienteNombre}` : ''}
                     </h2>
                     
-                    {/* Resumen del plan */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    {/* Resumen del plan - Oculto en móviles */}
+                    <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total de Cuotas</p>
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -111,9 +111,9 @@ export default function PlanPagosModal({
                                 Bs. {totales.pagado.toFixed(2)}
                             </p>
                         </div>
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
+                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</p>
-                            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                                 Bs. {totales.pendiente.toFixed(2)}
                             </p>
                         </div>

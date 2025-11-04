@@ -39,7 +39,6 @@ export default function PrestamoTable({ prestamos }: Props) {
                     <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                         <TableRow>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Cliente</TableCell>
-                            <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Monto Solicitado (Bs.)</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Monto Aprobado (Bs.)</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Fecha Desembolso</TableCell>
                             <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Interes Mensual</TableCell>
@@ -55,9 +54,6 @@ export default function PrestamoTable({ prestamos }: Props) {
                             <TableRow key={prestamo.id}>
                                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                     {prestamo.cliente_nombre}
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                                    {prestamo.monto_solicitado}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                     {prestamo.monto_aprobado}

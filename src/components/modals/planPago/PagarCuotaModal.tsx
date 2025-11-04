@@ -150,7 +150,7 @@ export default function PagarCuotaModal({
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={handleConfirm}
                 title="¿Confirmar el pago de esta cuota?"
-                description={`Método de pago: ${selectedMethod || ''} • Total a pagar: Bs. ${total.toFixed(2)}`}
+                description={`${selectedMethod || ''} • Total a pagar: Bs. ${total.toFixed(2)}`}
                 confirmLabel="Confirmar"
                 cancelLabel="Cancelar"
                 isPending={loading}
