@@ -26,7 +26,7 @@ export const campos: {
                 if (!v || v.trim() === "") return "El campo es obligatorio";
                 if (v.trim().length < 5) return "El campo debe tener al menos 5 caracteres";
                 if (v.length > 500) return "El campo no puede exceder 500 caracteres";
-                if (!/^[a-zA-Z\u00E0-\u00FC\u00C0-\u017F ]+$/.test(v)) return "El campo debe contener solo letras y espacios";
+                if (!/^[a-zA-Z0-9\u00E0-\u00FC\u00C0-\u017F .,;:\-()]+$/.test(v)) return "El campo contiene caracteres no permitidos";
                 return null;
             }
         },
@@ -37,7 +37,7 @@ export const campos: {
                 if (!v || v === "") return null; // Opcional
                 if (v.trim() === "") return "No se permiten solo espacios en blanco";
                 if (v.length > 500) return "El campo no puede exceder 500 caracteres";
-                if (!/^[a-zA-Z\u00E0-\u00FC\u00C0-\u017F ]+$/.test(v)) return "El campo debe contener solo letras y espacios";
+                if (!/^[a-zA-Z0-9\u00E0-\u00FC\u00C0-\u017F .,;:\-()]+$/.test(v)) return "El campo contiene caracteres no permitidos";
                 return null;
             }
         },

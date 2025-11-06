@@ -9,7 +9,7 @@ interface TextareaProps {
   disabled?: boolean; // Disabled state
   error?: boolean; // Error state
   hint?: string; // Hint text to display
-  lettersOnly?: boolean; // Filtra solo letras (incluye acentos y espacios)
+  lettersOnly?: boolean; // Filtra letras, números, espacios y caracteres de puntuación básicos
   maxLength?: number; // Longitud máxima de caracteres
 }
 
@@ -22,7 +22,7 @@ const TextArea: React.FC<TextareaProps> = ({
   disabled = false, // Disabled state
   error = false, // Error state
   hint = "", // Default hint text
-  lettersOnly = false, // Default letters only
+  lettersOnly = false, // Permite letras, números y puntuación
   maxLength, // Longitud máxima de caracteres
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -46,9 +46,9 @@ const TextArea: React.FC<TextareaProps> = ({
         const be = e as unknown as InputEvent;
         const data = (be && (be as any).data) as string | null;
         if (!data) return;
-        // Permite letras unicode y espacio
-        const lettersRegex = /^[\p{L} ]+$/u;
-        if (!lettersRegex.test(data)) {
+        // Permite letras unicode, números, espacios y caracteres de puntuación: . , : ; - ( )
+        const allowedRegex = /^[\p{L}0-9 .,;:\-()]+$/u;
+        if (!allowedRegex.test(data)) {
           e.preventDefault();
         }
       }
@@ -72,9 +72,9 @@ const TextArea: React.FC<TextareaProps> = ({
           " ", // espacio
         ];
         if (allowedKeys.includes(e.key)) return;
-        // Permite letras unicode (una sola tecla)
-        const singleLetter = /^\p{L}$/u;
-        if (!singleLetter.test(e.key)) {
+        // Permite letras unicode, números y caracteres de puntuación
+        const allowedCharRegex = /^[\p{L}0-9.,;:\-()]$/u;
+        if (!allowedCharRegex.test(e.key)) {
           e.preventDefault();
         }
       }
@@ -85,8 +85,8 @@ const TextArea: React.FC<TextareaProps> = ({
     lettersOnly
       ? (e) => {
         const text = e.clipboardData.getData("text");
-        // Mantener solo letras unicode y espacios
-        const filtered = text.replace(/[^\p{L} ]+/gu, "");
+        // Mantener solo letras unicode, números, espacios y caracteres de puntuación permitidos
+        const filtered = text.replace(/[^\p{L}0-9 .,;:\-()]+/gu, "");
         if (filtered.length === 0) {
           e.preventDefault();
           return;
