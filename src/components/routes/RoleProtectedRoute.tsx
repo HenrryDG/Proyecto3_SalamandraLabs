@@ -8,7 +8,7 @@ type RoleProtectedRouteProps = {
 };
 
 const RoleProtectedRoute = ({ allowedRoles, children }: RoleProtectedRouteProps) => {
-  const { empleado, loading } = useEmpleado(); // si tu hook devuelve loading
+  const { empleado, loading } = useEmpleado();
 
   if (loading) return null; // o un spinner
 
