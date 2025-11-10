@@ -27,6 +27,7 @@ import EmpleadosPage from "./pages/empleados/EmpleadosPage";
 import ClientesPage from "./pages/clientes/ClientesPage";
 import PrestamosPage from "./pages/prestamos/PrestamosPage";
 import SolicitudesPage from "./pages/solicitudes/SolicitudesPage";
+import CalculadoraPage from "./pages/calculadora/CalculadoraPage";
 
 export default function App() {
   return (
@@ -40,7 +41,9 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <AppLayout />
+                <RoleProtectedRoute allowedRoles={['Administrador', 'Asesor']}>
+                  <AppLayout />
+                </RoleProtectedRoute>
               </ProtectedRoute>
             }>
             <Route index path="/" element={<Home />} />

@@ -9,27 +9,25 @@ import ConfirmacionModal from "../confirmacionModal";
 
 // Configuración de campos reutilizable
 import {
-  campos,
-  camposObligatorios,
-  getMaxLength,
-  FormKeys
+  camposEdit,
+  camposObligatoriosEdit,
+  getMaxLengthEdit,
+  EditFormKeys
 } from "../../form/configs/clienteFormConfig";
 import { validarCarnetConComplemento } from "../../utils/validaciones";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  cliente: Cliente | null;   // Cliente a editar (puede ser null)
-  onUpdated?: () => void;    // Callback después de actualizar
+  cliente: Cliente | null;
+  onUpdated?: () => void;
 }
-
-// ...imports iguales
 
 export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }: Props) {
   const { update, isUpdating } = useUpdateCliente();
   const { toggle, isToggling } = useToggleCliente();
 
-  const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
+  const initialForm = Object.fromEntries(camposEdit.map(c => [c.key, ""])) as Record<EditFormKeys, string>;
   const [form, setForm] = useState(initialForm);
   const [errores, setErrores] = useState(initialForm);
 
@@ -40,7 +38,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
         complemento: cliente.complemento ?? "",
         nombre: cliente.nombre,
         apellido_paterno: cliente.apellido_paterno,
-        apellido_materno: cliente.apellido_materno,
+        apellido_materno: cliente.apellido_materno ?? "",
         lugar_trabajo: cliente.lugar_trabajo,
         tipo_trabajo: cliente.tipo_trabajo,
         ingreso_mensual: String(cliente.ingreso_mensual),
@@ -52,122 +50,51 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
     }
   }, [cliente]);
 
-  const handleInputChange = (key: FormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (key: EditFormKeys) => (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Convertir complemento a mayúsculas
+    // Complemento en mayúsculas y reglas
     if (key === "complemento") {
-      value = value.toUpperCase();
-
-      // Validar restricciones de complemento en tiempo real
-      const numCount = (value.match(/\d/g) || []).length;
-      const letterCount = (value.match(/[A-Z]/g) || []).length;
-      const hasSpecial = /[^A-Z0-9]/.test(value);
-
-      // Si hay caracteres especiales, eliminarlos
-      if (hasSpecial) {
-        value = value.replace(/[^A-Z0-9]/g, "");
-      }
-
-      // Si ya hay un número y se intenta agregar otro, no permitir
-      if (numCount > 1) {
-        value = value.replace(/\d/g, (match, offset) => {
-          return offset === value.indexOf(value.match(/\d/)![0]) ? match : "";
-        });
-      }
-
-      // Si ya hay una letra y se intenta agregar otra, no permitir
-      if (letterCount > 1) {
-        value = value.replace(/[A-Z]/g, (match, offset) => {
-          return offset === value.indexOf(value.match(/[A-Z]/)![0]) ? match : "";
-        });
-      }
-
-      // Limitar a 2 caracteres
-      if (value.length > 2) {
-        value = value.slice(0, 2);
-      }
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2);
     }
 
-    // Limitar carnet según si hay complemento
+    // Validación de carnet según complemento
     if (key === "carnet") {
       const maxCarnetLength = form.complemento ? 7 : 8;
-      if (value.length > maxCarnetLength) {
-        value = value.slice(0, maxCarnetLength);
-      }
+      value = value.slice(0, maxCarnetLength);
     }
 
     setForm(prev => ({ ...prev, [key]: value }));
 
-    const campo = campos.find(c => c.key === key);
-
-    // Para carnet, necesitamos pasar el complemento actual
+    const campo = camposEdit.find(c => c.key === key);
     if (key === "carnet") {
-      const errorCarnet = validarCarnetConComplemento(value, form.complemento);
-      setErrores(prev => ({ ...prev, carnet: errorCarnet ?? "" }));
-    }
-    // Para complemento, necesitamos revalidar el carnet
-    else if (key === "complemento") {
-      // Convertir a mayúsculas
-      value = value.toUpperCase();
-
-      // Permitir solo letras y números
-      value = value.replace(/[^A-Z0-9]/g, "");
-
-      // Limitar a 2 caracteres
-      if (value.length > 2) {
-        value = value.slice(0, 2);
-      }
-
-      // Validar formato número + letra (en ese orden)
-      const regex = /^[0-9][A-Z]?$/;
-      if (!regex.test(value) && value !== "") {
-        const firstChar = value[0];
-        const secondChar = value[1];
-
-        if (firstChar && isNaN(Number(firstChar))) {
-          // Si el primero no es número, eliminarlo
-          value = value.slice(1);
-        } else if (secondChar && !/[A-Z]/.test(secondChar)) {
-          // Si el segundo no es letra, eliminarlo
-          value = value[0];
-        }
-      }
-
-      // Luego, ejecutar las validaciones normales
-      const errorComplemento = campo?.validator(value) ?? "";
-      const errorCarnet = validarCarnetConComplemento(form.carnet, value);
-
+      setErrores(prev => ({ ...prev, carnet: validarCarnetConComplemento(value, form.complemento) ?? "" }));
+    } else if (key === "complemento") {
       setErrores(prev => ({
         ...prev,
-        complemento: errorComplemento,
-        carnet: errorCarnet ?? ""
+        complemento: campo?.validator(value) ?? "",
+        carnet: validarCarnetConComplemento(form.carnet, value) ?? ""
       }));
-    }
-
-    // Apellidos: solo validar si hay valor
-    else {
+    } else {
       setErrores(prev => ({
         ...prev,
-        [key]: (key === "apellido_paterno" || key === "apellido_materno") && !value
-          ? ""
-          : campo?.validator(value) ?? ""
+        [key]: campo?.validator(value) ?? ""
       }));
     }
   };
 
+  // Verifica errores: campos obligatorios + al menos un apellido + validaciones de formato
   const hayErrores =
-    camposObligatorios.some(key => !form[key]) ||                  // Campos obligatorios
-    (!form.apellido_paterno && !form.apellido_materno) ||          // Al menos un apellido
-    campos.some(c => c.validator(form[c.key]) !== null &&
-      c.key !== "apellido_paterno" &&
-      c.key !== "apellido_materno");                 // Validaciones de formato
+    camposObligatoriosEdit.some(key => !form[key]) ||
+    (!form.apellido_paterno && !form.apellido_materno) ||
+    camposEdit.some(c => c.validator(form[c.key]) !== null &&
+      c.key !== "apellido_paterno" && c.key !== "apellido_materno");
 
   const handleSubmit = async () => {
     if (!cliente || hayErrores) return;
 
     const data: Cliente = {
-      ...cliente,
+      ...cliente, // esto trae id, activo, created_at, updated_at
       ...form,
       telefono: Number(form.telefono),
       ingreso_mensual: Number(form.ingreso_mensual),
@@ -180,6 +107,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
     }
   };
 
+
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
@@ -190,11 +118,11 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {campos.map(c => (
+          {camposEdit.map(c => (
             <Input
               key={c.key}
               label={c.label}
-              type={c.key === "ingreso_mensual" ? "text" : c.type}
+              type={c.type}
               value={form[c.key]}
               onChange={handleInputChange(c.key)}
               error={!!errores[c.key]}
@@ -202,18 +130,12 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
               min={c.type === "number" ? 0 : undefined}
               digitsOnly={c.key === "telefono" || c.key === "carnet"}
               inputMode={c.key === "telefono" ? "numeric" : c.key === "ingreso_mensual" ? "decimal" : c.key === "carnet" ? "numeric" : undefined}
-              maxLength={getMaxLength(c.key)}
-              lettersOnly={
-                c.key === "nombre" ||
-                c.key === "apellido_paterno" ||
-                c.key === "apellido_materno" ||
-                c.key === "lugar_trabajo" ||
-                c.key === "tipo_trabajo"
-              }
+              maxLength={getMaxLengthEdit(c.key)}
+              lettersOnly={c.key === "nombre" || c.key === "apellido_paterno" || c.key === "apellido_materno" || c.key === "lugar_trabajo" || c.key === "tipo_trabajo"}
               decimal={c.key === "ingreso_mensual"}
               maxIntegerDigits={6}
               maxDecimalDigits={2}
-              className={c.key === "complemento" ? "sm:col-span-1" : c.key === "carnet" ? "sm:col-span-1" : ""}
+              className={c.key === "complemento" || c.key === "carnet" ? "sm:col-span-1" : ""}
             />
           ))}
         </div>
@@ -241,6 +163,7 @@ export default function EditClienteModal({ isOpen, onClose, cliente, onUpdated }
           </Button>
         </div>
       </div>
+
       <ConfirmacionModal
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
