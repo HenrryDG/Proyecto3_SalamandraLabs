@@ -86,6 +86,7 @@ export default function App() {
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/prestamos" element={<PrestamosPage />} />
             <Route path="/solicitudes" element={<SolicitudesPage />} />
+            <Route path="/calculadora" element={<CalculadoraPage />} />
           </Route>
 
           {/* Auth Layout */}
