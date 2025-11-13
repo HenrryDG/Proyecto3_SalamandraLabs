@@ -8,8 +8,9 @@ export const getSolicitudes = async (): Promise<Solicitud[]> => {
 };
 
 // * === SERVICIO PARA INSERTAR UNA NUEVA SOLICITUD === * //
-export const createSolicitud = async (payload: SolicitudDTO): Promise<void> => {
-  await api.post("/solicitudes/", payload);
+export const createSolicitud = async (payload: SolicitudDTO): Promise<Solicitud> => {
+  const response = await api.post<Solicitud>("/solicitudes/", payload);
+  return response.data;
 };
 
 // * === SERVICIO PARA ACTUALIZAR UNA SOLICITUD === * //

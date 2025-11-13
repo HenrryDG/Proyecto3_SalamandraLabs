@@ -25,6 +25,9 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
 
     // Estado para mostrar modal de confirmación
     const [confirmOpen, setConfirmOpen] = useState(false);
+    // Estado para mostrar modal con el resultado devuelto por el backend
+    const [resultModalOpen, setResultModalOpen] = useState(false);
+    const [resultEstado, setResultEstado] = useState<string | null>(null);
 
     // Estado inicial vacío
     const initialForm = Object.fromEntries(campos.map(c => [c.key, ""])) as Record<FormKeys, string>;
@@ -62,23 +65,36 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
             cliente: Number(form.cliente),
         };
 
+        // Cerrar el modal de confirmación y el modal de creación, abrir el modal de resultado en modo 'procesando'
+        setConfirmOpen(false);
+        onClose();
+        setResultEstado(null); // null = procesando
+        setResultModalOpen(true);
+
         // Llamar a la mutación para crear la solicitud
         mutate(data, {
-            onSuccess: () => {
-                setConfirmOpen(false);
-                onClose();
+            onSuccess: (res) => {
+                // Actualizar estado del resultado cuando llegue la respuesta
+                setResultEstado(res.estado);
+
+                // Resetear formulario
                 onCreated?.();
                 setForm(initialForm);
                 setErrores(initialForm);
             },
-            onError: () => {
-                // Cerrar confirmación pero dejar el formulario para corregir
-                setConfirmOpen(false);
+            onError: (error: any) => {
+                // Mostrar mensaje de error en el modal de resultado
+                const mensaje =
+                    error?.response?.data?.error ||
+                    error?.response?.data?.mensaje ||
+                    "Error al registrar solicitud";
+                setResultEstado("Error: " + mensaje);
             },
         });
     };
 
     return (
+        <>
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
             <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
@@ -176,12 +192,51 @@ export default function CreateSolicitudModal({ isOpen, onClose, onCreated }: Pro
                     </Button>
                 </div>
             </div>
-            <ConfirmacionModal
-                isOpen={confirmOpen}
-                onClose={() => setConfirmOpen(false)}
-                onConfirm={handleConfirmCreate}
-                isPending={isPending}
-            />
         </Modal>
+
+        {/* Confirmación para crear */}
+        <ConfirmacionModal
+            isOpen={confirmOpen}
+            onClose={() => setConfirmOpen(false)}
+            onConfirm={handleConfirmCreate}
+            title="¿Desea crear la solicitud de crédito?"
+            description="Se enviará la solicitud al sistema para su evaluación."
+            confirmLabel="Guardar"
+            cancelLabel="Cancelar"
+            isPending={isPending}
+        />
+
+        {/* Modal de resultado: muestra si fue Aprobada, Rechazada o Pendiente */}
+        <ConfirmacionModal
+            isOpen={resultModalOpen}
+            onClose={() => setResultModalOpen(false)}
+            onConfirm={() => setResultModalOpen(false)}
+            title={
+                resultEstado === null
+                    ? "Procesando solicitud..."
+                    : resultEstado === "Aprobada"
+                    ? "Solicitud Aprobada"
+                    : resultEstado === "Rechazada"
+                    ? "Solicitud Rechazada"
+                    : (resultEstado ?? "").startsWith("Error:")
+                    ? "Error"
+                    : "Solicitud Pendiente"
+            }
+            description={
+                resultEstado === null
+                    ? "Por favor espere mientras se procesa la solicitud."
+                    : resultEstado === "Aprobada"
+                    ? "La solicitud ha sido aprobada." 
+                    : resultEstado === "Rechazada"
+                    ? "La solicitud ha sido rechazada." 
+                    : (resultEstado ?? "").startsWith("Error:")
+                    ? (resultEstado ?? "").replace("Error: ", "")
+                    : "La solicitud quedó en estado Pendiente y será procesada posteriormente."
+            }
+            confirmLabel="Aceptar"
+            cancelLabel=""
+            isPending={isPending}
+        />
+    </>
     );
 }
