@@ -32,9 +32,11 @@ const ConfirmacionModal: React.FC<ConfirmacionModalProps> = ({
 				)}
 
 				<div className="flex justify-end gap-3">
-					<Button variant="outline" onClick={onClose} size="sm">
-						{cancelLabel}
-					</Button>
+					{cancelLabel && (
+						<Button variant="outline" onClick={onClose} size="sm">
+							{cancelLabel}
+						</Button>
+					)}
 					<Button variant="primary" onClick={onConfirm} size="sm" disabled={isPending}>
 						{isPending ? "Guardando..." : confirmLabel}
 					</Button>
